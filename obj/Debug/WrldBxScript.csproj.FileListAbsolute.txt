@@ -1,0 +1,7 @@
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxScript\bin\Debug\WrldBxScript.exe.config
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxScript\bin\Debug\WrldBxScript.exe
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxScript\bin\Debug\WrldBxScript.pdb
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxScript\obj\Debug\WrldBxScript.csproj.AssemblyReference.cache
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxScript\obj\Debug\WrldBxScript.csproj.CoreCompileInputs.cache
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxScript\obj\Debug\WrldBxScript.exe
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxScript\obj\Debug\WrldBxScript.pdb
