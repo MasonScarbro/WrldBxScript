@@ -35,6 +35,10 @@ namespace WrldBxScript
             { "LOCALIZTION", TokenType.LOCALIZATION },
             { "CRIT_CHANCE", TokenType.CRIT_CHANCE },
             { "ID", TokenType.ID },
+            { "EMPTY", TokenType.NIL },
+            { "TRUE", TokenType.TRUE },
+            { "FALSE", TokenType.FALSE },
+            
 
         };
 

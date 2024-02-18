@@ -16,12 +16,13 @@ namespace WrldBxScript
          */
         public class Var : Stmt
         {
-            public Var(Token type, Expr initializer)
+            public Var(Token type, Expr value)
             {
                 this.type = type;
+                this.value = value;
             }
             public readonly Token type; // This is the Identifier in a way 
-            public readonly Expr initializer;
+            public readonly Expr value;
         }
 
         // These will be the starters like TRAITS, EFFECTS, Etc...
@@ -45,6 +46,7 @@ namespace WrldBxScript
             
         }
 
+        // In code gen I will do a count to handle the variable names ex. "var" + count for each stmt
         public class Block : Stmt
         {
             public Block(List<Stmt> statements)
@@ -55,6 +57,16 @@ namespace WrldBxScript
 
             public readonly List<Stmt> statements;
 
+        }
+
+        public class Expression : Stmt
+        {
+            public Expression(Expr expression)
+            {
+                this.expression = expression;
+            }
+
+            public readonly Expr expression;
         }
 
     }

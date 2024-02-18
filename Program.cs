@@ -78,7 +78,9 @@ namespace WrldBxScript
                 {
                     Console.WriteLine(token.type.ToString());
                 }
-                
+                Parser parser = new Parser(tokens);
+                List<Stmt> stmts = parser.Parse();
+                PrettyPrintStmts(stmts);
                 //Console.WriteLine(new AstPrinter().Print(expression));
 
             }
@@ -100,6 +102,24 @@ namespace WrldBxScript
             hadError = true;
         }
 
+        private static void PrettyPrintStmts(List<Stmt> stmts)
+        {
+            foreach (Stmt stmt in stmts)
+            {
+                Console.WriteLine(stmt);
+                if (stmt is Stmt.Block b)
+                {
+
+                    for (int i = 0; i < b.statements.Count; i++)
+                    {
+                        if (b.statements[i] is Stmt.Var v)
+                        {
+                            Console.WriteLine("Type: " + v.type.lexeme + " Value: " + v.value);
+                        }
+                    }
+                }
+            }
+        }
 
         //ERROR WITH TOKENS GOES HERE
         /*

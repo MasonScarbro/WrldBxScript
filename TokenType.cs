@@ -17,7 +17,7 @@ namespace WrldBxScript
 
 
         //Literals 
-        IDENTIFIER, STRING, NUMBER,
+        IDENTIFIER, STRING, NUMBER, TRUE, FALSE, NIL,
 
         //Major Keywords
         MODNAME, TRAITS, EFFECTS, STATUSES, ITEMS,

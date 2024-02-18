@@ -12,7 +12,7 @@ namespace WrldBxScript
 
         private readonly List<Token> tokens;
         private int current = 0;
-        private int loopDepth = 0;
+        
 
         public Parser(List<Token> tokens)
         {
@@ -32,12 +32,103 @@ namespace WrldBxScript
             List<Stmt> stmts = new List<Stmt>();
             while (!IsAtEnd())
             {
-                stmts.Add(PLACEHOLDER()); // PLACEHOLDER is just so I can upload this with no ERRORS 
+                stmts.Add(Declaration()); // PLACEHOLDER is just so I can upload this with no ERRORS 
 
             }
 
             return stmts;
         }
+
+        private Expr Expression()
+        {
+            return Term();
+        }
+        private Stmt Declaration()
+        {
+            if (Match(TokenType.HEALTH, TokenType.DAMAGE,
+                TokenType.CRIT_CHANCE, TokenType.CRIT_CHANCE,
+                TokenType.RANGE, TokenType.ID))
+            {
+                return VarDeclaration();
+            }
+            //else
+            return Satement();
+        }
+        private Stmt VarDeclaration()
+        {
+            Token type = Previous();
+            Expr value = null;
+            if (Match(TokenType.COLON))
+            {
+                
+                value = Expression();
+
+            }
+
+            Consume(TokenType.COMMA, "Expected ',' after your variable declaration");
+            return new Stmt.Var(type, value);
+        }
+
+        private Stmt Satement()
+        {
+            if (Match(TokenType.LEFT_BRACE)) return new Stmt.Block(Block());
+            //else
+            return ExpressionStmt();
+        }
+
+        private List<Stmt> Block()
+        {
+            Console.WriteLine("Parsing Block");
+            List<Stmt> statements = new List<Stmt>();
+
+            while (!Check(TokenType.RIGHT_BRACE) && !IsAtEnd())
+            {
+                statements.Add(Declaration());
+
+            }
+            Consume(TokenType.RIGHT_BRACE, "Expected a '}' after block");
+            return statements;
+        }
+
+        private Stmt ExpressionStmt()
+        {
+            Expr expr = Expression();
+            Consume(TokenType.COMMA, "Expeceted a ',' after value");
+            return new Stmt.Expression(expr);
+        }
+
+
+
+        private Expr Term()
+        {
+            Expr expr = Primary();
+
+            while (Match(TokenType.MINUS, TokenType.PLUS))
+            {
+                Token oper = Previous();
+                Expr right = Primary();
+                
+                expr = new Expr.Binary(expr, oper, right);
+            }
+            return expr;
+        }
+
+        private Expr Primary()
+        {
+            if (Match(TokenType.FALSE)) return new Expr.Literal(false);
+            if (Match(TokenType.TRUE)) return new Expr.Literal(true);
+            if (Match(TokenType.NIL)) return new Expr.Literal(null);
+
+            if (Match(TokenType.NUMBER, TokenType.STRING))
+            {
+                Console.WriteLine("Parsing Term " + Previous());
+                return new Expr.Literal(Previous().literal);
+            }
+
+            throw new ParseError();
+
+        }
+
 
         private Stmt PLACEHOLDER() 
         {
@@ -73,6 +164,33 @@ namespace WrldBxScript
             return tokens[current - 1];
         }
 
+        private Token Consume(TokenType type, String message)
+        {
+            if (Check(type)) return Advance();
+            //else
+            throw Error(Peek(), message);
+        }
+
+        private bool Match(params TokenType[] types)
+        {
+            foreach(TokenType type in types)
+            {
+                if (Check(type))
+                {
+                    Advance();
+                    return true;
+                }
+            }
+            return false;
+        }
+
+
+        private ParseError Error(Token tok, string message)
+        {
+            Console.WriteLine($"Parser Error at line {tok.line}: {message}");
+            WrldBxScript.Error(tok.line, message);
+            return new ParseError();
+        }
 
     }
 }
