@@ -45,6 +45,10 @@ namespace WrldBxScript
         }
         private Stmt Declaration()
         {
+            if(Match(TokenType.TRAITS, TokenType.EFFECTS))
+            {
+                return Starter();
+            }
             if (Match(TokenType.HEALTH, TokenType.DAMAGE,
                 TokenType.CRIT_CHANCE, TokenType.CRIT_CHANCE,
                 TokenType.RANGE, TokenType.ID))
@@ -53,6 +57,21 @@ namespace WrldBxScript
             }
             //else
             return Satement();
+        }
+
+        private Stmt Starter()
+        {
+            Token type = Previous();
+            Consume(TokenType.LEFT_BRACKET, "After a Starter (EFFECTS, TRAITS, Etc...) There Needs to Be a Block Stmt '['");
+            List<Stmt> statements = new List<Stmt>();
+            Console.WriteLine(Peek().lexeme);
+            while (!Check(TokenType.RIGHT_BRACKET) && !IsAtEnd())
+            {
+                statements.Add(Declaration());
+
+            }
+            Consume(TokenType.RIGHT_BRACKET, "Expected a ']' after block");
+            return new Stmt.Starter(type, statements);
         }
         private Stmt VarDeclaration()
         {
@@ -130,10 +149,7 @@ namespace WrldBxScript
         }
 
 
-        private Stmt PLACEHOLDER() 
-        {
-            return new Stmt.Var(Previous(), null);
-        }
+
 
         private bool Check(TokenType type)
         {

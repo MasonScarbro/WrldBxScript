@@ -43,6 +43,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CompilerError.cs" />
+    <Compile Include="Compiler.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Stmt.cs" />
     <Compile Include="Expr.cs" />

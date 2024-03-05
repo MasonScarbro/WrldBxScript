@@ -9,7 +9,7 @@ namespace WrldBxScript
 {
     class WrldBxScript
     {
-
+        public static readonly Compiler compiler = new Compiler();
         static bool hadError = false;
         static bool hadRuntimeError = false;
         public static void Main(string[] args)
@@ -81,6 +81,9 @@ namespace WrldBxScript
                 Parser parser = new Parser(tokens);
                 List<Stmt> stmts = parser.Parse();
                 PrettyPrintStmts(stmts);
+                if (hadError) return;
+
+                compiler.Compile(stmts);
                 //Console.WriteLine(new AstPrinter().Print(expression));
 
             }
@@ -121,13 +124,11 @@ namespace WrldBxScript
             }
         }
 
-        //ERROR WITH TOKENS GOES HERE
-        /*
-        public static void RuntimeErrorToCons(RuntimeError error)
+        public static void CompilerErrorToCons(CompilerError error)
         {
             Console.Error.WriteLine(error.ToString() + "\n[line " + error.token.line + "]");
             hadRuntimeError = true;
         }
-        */
+
     }
 }
