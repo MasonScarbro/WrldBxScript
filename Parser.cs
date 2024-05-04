@@ -83,7 +83,7 @@ namespace WrldBxScript
                 value = Expression();
 
             }
-
+            
             Consume(TokenType.COMMA, "Expected ',' after your variable declaration");
             return new Stmt.Var(type, value);
         }
@@ -138,10 +138,14 @@ namespace WrldBxScript
             if (Match(TokenType.TRUE)) return new Expr.Literal(true);
             if (Match(TokenType.NIL)) return new Expr.Literal(null);
 
-            if (Match(TokenType.NUMBER, TokenType.STRING))
+            if (Match(TokenType.NUMBER))
             {
-                Console.WriteLine("Parsing Term " + Previous());
+                Console.WriteLine("Parsing Term " + Previous().lexeme);
                 return new Expr.Literal(Previous().literal);
+            }
+            if (Match(TokenType.STRING))
+            {
+                return new Expr.Literal(Previous().lexeme);
             }
 
             throw new ParseError();
@@ -187,6 +191,16 @@ namespace WrldBxScript
             throw Error(Peek(), message);
         }
 
+        //Got to get this to work
+        private Token ConsumeEither(TokenType type, TokenType type2, String message)
+        {
+
+            if (Check(type) || (Check(type2) && (LookBack(4).GetTokenType() == TokenType.COMMA))) return Advance();
+            //else
+            throw Error(Peek(), message);
+        }
+
+
         private bool Match(params TokenType[] types)
         {
             foreach(TokenType type in types)
@@ -200,7 +214,10 @@ namespace WrldBxScript
             return false;
         }
 
-
+        private Token LookBack(int num)
+        {
+            return tokens[current - num];
+        }
         private ParseError Error(Token tok, string message)
         {
             Console.WriteLine($"Parser Error at line {tok.line}: {message}");

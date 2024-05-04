@@ -82,6 +82,7 @@ namespace WrldBxScript
                 List<Stmt> stmts = parser.Parse();
                 PrettyPrintStmts(stmts);
                 if (hadError) return;
+                if (hadRuntimeError) return;
 
                 compiler.Compile(stmts);
                 //Console.WriteLine(new AstPrinter().Print(expression));
@@ -126,6 +127,7 @@ namespace WrldBxScript
 
         public static void CompilerErrorToCons(CompilerError error)
         {
+            
             Console.Error.WriteLine(error.ToString() + "\n[line " + error.token.line + "]");
             hadRuntimeError = true;
         }
