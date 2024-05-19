@@ -49,9 +49,7 @@ namespace WrldBxScript
             {
                 return Starter();
             }
-            if (Match(TokenType.HEALTH, TokenType.DAMAGE,
-                TokenType.CRIT_CHANCE, TokenType.CRIT_CHANCE,
-                TokenType.RANGE, TokenType.ID))
+            if (IsMinorKeyword())
             {
                 return VarDeclaration();
             }
@@ -84,7 +82,7 @@ namespace WrldBxScript
 
             }
             
-            Consume(TokenType.COMMA, "Expected ',' after your variable declaration");
+            ConsumeEither(TokenType.COMMA, TokenType.RIGHT_BRACE, "Expected ',' after your variable declaration");
             return new Stmt.Var(type, value);
         }
 
@@ -195,12 +193,28 @@ namespace WrldBxScript
         private Token ConsumeEither(TokenType type, TokenType type2, String message)
         {
 
-            if (Check(type) || (Check(type2) && (LookBack(4).GetTokenType() == TokenType.COMMA))) return Advance();
+            if (Check(type)) return Advance();
+            // ending '}' syntax consume of variable declaration
+            if ((Check(type2)))
+            {
+                current--;
+                return Advance();
+            }
             //else
             throw Error(Peek(), message);
         }
 
-
+        private bool IsMinorKeyword()
+        {
+            return Match
+                (
+                    TokenType.DAMAGE, TokenType.HEALTH, TokenType.ATTACK_SPEED, 
+                    TokenType.RANGE, TokenType.LOCALIZATION, TokenType.ID,
+                    TokenType.DODGE, TokenType.ACCURACY, TokenType.SCALE, 
+                    TokenType.INTELIGENCE, TokenType.WARFARE, 
+                    TokenType.STEWARDSHIP, TokenType.CRIT_CHANCE
+                );
+        }
         private bool Match(params TokenType[] types)
         {
             foreach(TokenType type in types)

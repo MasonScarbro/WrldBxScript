@@ -31,8 +31,10 @@ namespace WrldBxScript
 
         private Stmt Execute(Stmt stmt, object name)
         {
+            
             if (stmt is Stmt.Var stmtv)
             {
+                
                 switch (stmtv.type.lexeme.ToUpper())
                 {
                     case "HEALTH":
@@ -44,6 +46,30 @@ namespace WrldBxScript
                     case "CRIT_CHANCE":
                         src += ToStatString(name.ToString(), "crit_chance") + EvaluateExpr(stmtv.value) + ";";
                         break;
+                    case "RANGE":
+                        break;
+                    case "ATTACK_SPEED":
+                        src += ToStatString(name.ToString(), "attack_speed") + EvaluateExpr(stmtv.value) + ";";
+                        break;
+                    case "DODGE":
+                        src += ToStatString(name.ToString(), "dodge") + EvaluateExpr(stmtv.value) + ";";
+                        break;
+                    case "ACCURACY":
+                        src += ToStatString(name.ToString(), "accuracy") + EvaluateExpr(stmtv.value) + ";";
+                        break;
+                    case "SCALE":
+                        src += ToStatString(name.ToString(), "scale") + EvaluateExpr(stmtv.value) + ";";
+                        break;
+                    case "INTELIGENCE":
+                        src += ToStatString(name.ToString(), "intelligence") + EvaluateExpr(stmtv.value) + ";";
+                        break;
+                    case "WARFARE":
+                        src += ToStatString(name.ToString(), "warfare") + EvaluateExpr(stmtv.value) + ";";
+                        break;
+                    case "STEWARDSHIP":
+                        src += ToStatString(name.ToString(), "stewardship") + EvaluateExpr(stmtv.value) + ";";
+                        break;
+
 
                 }
                 
@@ -53,8 +79,9 @@ namespace WrldBxScript
                 src = "class " + ToParaCase(stmtst.type.lexeme) + "\n" + "{" + "\n\tpublic static void init() \n{";
                 foreach (Stmt.Block block in stmtst.body)
                 {
-                    
-                    Execute(block, null);
+                    string nameP = VerifyBlockName(block);
+                    AddBlockId(nameP);
+                    Execute(block, nameP);
                     count++;
                 }
                 // reset src and count at the end of executing a starter since it descends
@@ -63,10 +90,10 @@ namespace WrldBxScript
             }
             if (stmt is Stmt.Block stmtb)
             {
-                string nameP = VerifyBlockName(stmtb);
+                
                 foreach (Stmt stat in stmtb.statements)
                 {
-                    Execute(stat, nameP);
+                    Execute(stat, name);
                 }
             }
             
@@ -127,13 +154,24 @@ namespace WrldBxScript
 
         private string VerifyBlockName(Stmt.Block stmtb)
         {
+            
             if (stmtb.statements[0] is Stmt.Var nameP)
             {
+                if (src.Contains(" " + nameP.value + " "))
+                {
+                    throw new CompilerError(nameP.type, "Hmmm it looks Like you have already used " + nameP.value + " Somewhere in your code!");
+                }
                 if (nameP.type.type == TokenType.ID) return EvaluateExpr(nameP.value).ToString();
                 //else
                 throw new CompilerError(nameP.type, "Is Not a Name/Id, Each trait MUST have an ID or NAME tag at the start of each block");
             }
             return null;
+        }
+
+        private void AddBlockId(object name)
+        {
+            src += "\t\t\nActorTrait " + name.ToString() + " = new ActorTrait();";
+            src += "\t\t\n" + name.ToString() + ".id = " + '"' + name.ToString() + '"' + ';';
         }
 
         private string ToStatString(string nameP, string type)
