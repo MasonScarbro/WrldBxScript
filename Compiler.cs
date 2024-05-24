@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
+using System.Threading;
 
 namespace WrldBxScript
 {
@@ -218,15 +219,17 @@ namespace WrldBxScript
             //else
             throw new CompilerError(stmtv.type, "Modname CANNOT be an integer or double It MUST be a string!");
         }
-        private async void FormatCode(string path)
+        private void FormatCode(string path, CancellationToken cancelToken = default)
         {
             
             string code = File.ReadAllText(path);
-            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(code);
-            var root = await syntaxTree.GetRootAsync();
-            var formattedRoot = Formatter.Format(root, Formatter.Annotation, new AdhocWorkspace());
-            string formattedCode = formattedRoot.ToFullString();
-            File.WriteAllText(path, formattedCode);
+            string source = CSharpSyntaxTree.ParseText(code)
+                            .GetRoot(cancelToken)
+                            .NormalizeWhitespace()
+                            .SyntaxTree
+                            .GetText(cancelToken)
+                            .ToString();
+            File.WriteAllText(path, source);
         }
 
         private string ReplaceWhiteSpace(string str)
