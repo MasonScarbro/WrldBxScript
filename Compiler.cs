@@ -3,6 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.MSBuild;
+using Microsoft.CodeAnalysis.Options;
 
 namespace WrldBxScript
 {
@@ -10,6 +16,7 @@ namespace WrldBxScript
     {
         private int count = 0;
         private string src;
+        private string modname;
         public void Compile(List<Stmt> statements)
         {
             try
@@ -21,7 +28,7 @@ namespace WrldBxScript
 
 
                 }
-                Console.WriteLine(src);
+                //Console.WriteLine(src);
             }
             catch (CompilerError error)
             {
@@ -34,7 +41,14 @@ namespace WrldBxScript
             
             if (stmt is Stmt.Var stmtv)
             {
-                
+                if (stmtv.type.lexeme.ToUpper().Equals("MODNAME"))
+                {
+                    modname = VerifyModnameType(stmtv);
+                }
+                else if (name == null && modname == null)
+                {
+                    throw new CompilerError(stmtv.type, "Error You Should not have a variable outside of a block UNLESS its MODNAME");
+                }
                 switch (stmtv.type.lexeme.ToUpper())
                 {
                     case "HEALTH":
@@ -76,17 +90,17 @@ namespace WrldBxScript
             }
             if (stmt is Stmt.Starter stmtst)
             {
-                src = "class " + ToParaCase(stmtst.type.lexeme) + "\n" + "{" + "\n\tpublic static void init() \n{";
+                src += "namespace " + modname + "\n{\n";
+                src += "\t\nclass " + ToParaCase(stmtst.type.lexeme) + "\n" + "{" + "\n\tpublic static void init() \n{";
                 foreach (Stmt.Block block in stmtst.body)
                 {
                     string nameP = VerifyBlockName(block);
                     AddBlockId(nameP);
                     Execute(block, nameP);
+                    AddReqCodeToBlock(stmtst.type, nameP);
                     count++;
                 }
-                // reset src and count at the end of executing a starter since it descends
-                //count = 0;
-                //src = "";
+                CompileToFile(stmtst.type);
             }
             if (stmt is Stmt.Block stmtb)
             {
@@ -138,10 +152,10 @@ namespace WrldBxScript
                         break;
                     case TokenType.MINUS:
                         return (double)left - (double)right;
-                        break;
+                        
                     default:
                         throw new CompilerError(exprB.oper, "Error With Processing Value After Identifier");
-                        return null;
+                        
                 }
             }
             return expr;
@@ -163,9 +177,18 @@ namespace WrldBxScript
                 }
                 if (nameP.type.type == TokenType.ID) return EvaluateExpr(nameP.value).ToString();
                 //else
-                throw new CompilerError(nameP.type, "Is Not a Name/Id, Each trait MUST have an ID or NAME tag at the start of each block");
+                throw new CompilerError(nameP.type, "Is Not a Name/Id, Each block MUST have an ID or NAME tag at the start of each block");
             }
             return null;
+        }
+
+        private void AddReqCodeToBlock(Token type, object name)
+        {
+            if (type.lexeme.Equals("TRAITS"))
+            {
+                src += "\t\t\nAssetManger.traits.add(" + name.ToString() + ");";
+                src += "\t\t\nPlayerConfig.unlockTrait(" + name.ToString() + ".id);\n";
+            }
         }
 
         private void AddBlockId(object name)
@@ -174,9 +197,55 @@ namespace WrldBxScript
             src += "\t\t\n" + name.ToString() + ".id = " + '"' + name.ToString() + '"' + ';';
         }
 
+
+        private void CompileToFile(Token type)
+        {
+            if (type.lexeme.Equals("TRAITS"))
+            {
+                src += Constants.TRAITSEOF;
+                File.WriteAllText("C:/Users/Admin/Desktop/fart.cs", src);
+                FormatCode("C:/Users/Admin/Desktop/fart.cs");
+
+
+            }
+            src = ""; //reset src for next starter
+            count = 0;
+        }
+
+        private string VerifyModnameType(Stmt.Var stmtv)
+        {
+            if (EvaluateExpr(stmtv.value) is string) return ToParaCase(ReplaceWhiteSpace(EvaluateExpr(stmtv.value).ToString()));
+            //else
+            throw new CompilerError(stmtv.type, "Modname CANNOT be an integer or double It MUST be a string!");
+        }
+        private async void FormatCode(string path)
+        {
+            
+            string code = File.ReadAllText(path);
+            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(code);
+            var root = await syntaxTree.GetRootAsync();
+            var formattedRoot = Formatter.Format(root, Formatter.Annotation, new AdhocWorkspace());
+            string formattedCode = formattedRoot.ToFullString();
+            File.WriteAllText(path, formattedCode);
+        }
+
+        private string ReplaceWhiteSpace(string str)
+        {
+            try
+            {
+                str.Replace(' ', '_');
+            }
+            catch (Exception)
+            {
+
+            }
+            
+            return str;
+        }
+
         private string ToStatString(string nameP, string type)
         {
-            return "\t\t\n" + nameP.ToLower() + ".base_stats[S." + type + "] += ";
+            return "\t\t\n" + ReplaceWhiteSpace(nameP.ToLower()) + ".base_stats[S." + type + "] += ";
         }
     }
 }

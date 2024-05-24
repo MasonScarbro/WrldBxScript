@@ -49,7 +49,7 @@ namespace WrldBxScript
             {
                 return Starter();
             }
-            if (IsMinorKeyword())
+            if (IsMinorKeyword() || Match(TokenType.MODNAME))
             {
                 return VarDeclaration();
             }
