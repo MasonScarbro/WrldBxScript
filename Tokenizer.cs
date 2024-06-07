@@ -39,7 +39,15 @@ namespace WrldBxScript
             { "EMPTY", TokenType.NIL },
             { "TRUE", TokenType.TRUE },
             { "FALSE", TokenType.FALSE },
-            
+            { "PATH", TokenType.PATH },
+            { "ICON", TokenType.PATH },
+            { "SPRITE", TokenType.PATH },
+            { "LIMIT", TokenType.LIMIT },
+            { "DRAW_LIGHT", TokenType.DRAW_LIGHT },
+            { "LIGHT_SIZE", TokenType.DRAW_LIGHT_SIZE },
+            { "FRAME_INTERVAL", TokenType.TIMEBETWEENFRAMES }
+
+
 
         };
 

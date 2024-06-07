@@ -189,7 +189,7 @@ namespace WrldBxScript
             throw Error(Peek(), message);
         }
 
-        //Got to get this to work
+        
         private Token ConsumeEither(TokenType type, TokenType type2, String message)
         {
 
@@ -212,7 +212,9 @@ namespace WrldBxScript
                     TokenType.RANGE, TokenType.LOCALIZATION, TokenType.ID,
                     TokenType.DODGE, TokenType.ACCURACY, TokenType.SCALE, 
                     TokenType.INTELIGENCE, TokenType.WARFARE, 
-                    TokenType.STEWARDSHIP, TokenType.CRIT_CHANCE
+                    TokenType.STEWARDSHIP, TokenType.CRIT_CHANCE, TokenType.PATH,
+                    TokenType.TIMEBETWEENFRAMES, TokenType.DRAW_LIGHT,
+                    TokenType.DRAW_LIGHT_SIZE, TokenType.LIMIT
                 );
         }
         private bool Match(params TokenType[] types)
