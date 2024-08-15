@@ -25,7 +25,7 @@ namespace WrldBxScript
             {
                 foreach (Stmt statement in statements)
                 {
-                    var stmt = Execute(statement, null, null);
+                    var stmt = Execute(statement, null, "");
                     Console.WriteLine(stmt);
 
 
@@ -46,6 +46,7 @@ namespace WrldBxScript
                 if (stmtv.type.lexeme.ToUpper().Equals("MODNAME"))
                 {
                     modname = VerifyModnameType(stmtv);
+                    
                 }
                 else if (name == null && modname == null)
                 {
@@ -56,6 +57,9 @@ namespace WrldBxScript
                     switch (stmtv.type.type)
                     {
 
+                        case TokenType.ID:
+                            AddBlockId(name, type);
+                            break;
                         case TokenType.HEALTH:
                             src += ToStatString(name.ToString(), "health") + EvaluateExpr(stmtv.value) + ";";
                             break;
@@ -101,7 +105,9 @@ namespace WrldBxScript
                 {
                     switch (stmtv.type.type)
                     {
-
+                        case TokenType.ID:
+                            AddBlockId(name, type);
+                            break;
                         case TokenType.PATH:
                             src += "\t\t\nsprite_path = " + EvaluateExpr(stmtv.value) + ",";
                             break;
@@ -116,6 +122,12 @@ namespace WrldBxScript
                             break;
                         case TokenType.LIMIT:
                             src += "\t\t\nlimit = " + EvaluateExpr(stmtv.value) + ",";
+                            break;
+                        case TokenType.SPAWNONTARGET:
+                            UpdateEffects(name.ToString(), stmtv.type, EvaluateExpr(stmtv.value));
+                            break;
+                        case TokenType.SPAWNFROMACTOR:
+                            UpdateEffects(name.ToString(), stmtv.type, EvaluateExpr(stmtv.value));
                             break;
                         default:
                             throw new CompilerError(stmtv.type, "This keyword does not exist within the " + type + " block");
@@ -135,7 +147,7 @@ namespace WrldBxScript
                 foreach (Stmt.Block block in stmtst.body)
                 {
                     string nameP = VerifyBlockName(block);
-                    AddBlockId(nameP, stmtst.type.lexeme);
+                    
                     Execute(block, nameP, stmtst.type.lexeme);
                     AddReqCodeToBlock(stmtst.type, nameP);
                     count++;
@@ -147,6 +159,7 @@ namespace WrldBxScript
                 
                 foreach (Stmt stat in stmtb.statements)
                 {
+                    
                     Execute(stat, name, type);
                 }
             }
@@ -221,7 +234,7 @@ namespace WrldBxScript
         {
             if (effects.ContainsKey(id))
             {
-                effects[id].UpdateStats(new List<string> { type.lexeme }, value);
+                effects[id].UpdateStats(type , value);
             }
             else
             {
@@ -236,7 +249,7 @@ namespace WrldBxScript
         }
 
         private string VerifyBlockName(Stmt.Block stmtb)
-        {
+         {
             
             if (stmtb.statements[0] is Stmt.Var nameP)
             {

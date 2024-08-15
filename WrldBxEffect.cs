@@ -10,20 +10,23 @@ namespace WrldBxScript
     {
         private string id;
         private bool spawnsFromActor;
+        private bool spawnsOnTarget;
 
         public WrldBxEffect(string id)
         {
+            Console.WriteLine("NEW EFFECT REGISTERED");
             this.id = id;
             this.spawnsFromActor = false;
         }
 
-        public void UpdateStats(List<string> strings, object value)
+        public void UpdateStats(Token type, object value)
         {
-            foreach (string str in strings)
-            {
-                if (str.Equals("id")) id = value.ToString();
-                if (str.Equals("spawnsFromActor")) spawnsFromActor = (bool)value;
-            }
+                Console.WriteLine("Effect " + id + " updated: " + type.lexeme);
+                Console.WriteLine("VALUE: " + value);
+                if (type.type == TokenType.ID) id = value.ToString();
+                if (type.type == TokenType.SPAWNFROMACTOR) spawnsFromActor = bool.Parse(value.ToString());
+                if (type.type == TokenType.SPAWNONTARGET) spawnsOnTarget = bool.Parse(value.ToString());
+            
         }
     }
 }

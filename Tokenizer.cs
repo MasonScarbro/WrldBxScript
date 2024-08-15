@@ -45,7 +45,14 @@ namespace WrldBxScript
             { "LIMIT", TokenType.LIMIT },
             { "DRAW_LIGHT", TokenType.DRAW_LIGHT },
             { "LIGHT_SIZE", TokenType.DRAW_LIGHT_SIZE },
-            { "FRAME_INTERVAL", TokenType.TIMEBETWEENFRAMES }
+            { "FRAME_INTERVAL", TokenType.TIMEBETWEENFRAMES },
+            { "TIMEBETWEENFRAMES", TokenType.TIMEBETWEENFRAMES },
+            { "SPAWNS_FROM_ACTOR", TokenType.SPAWNFROMACTOR },
+            { "TRAVELS_TO_TARGET", TokenType.SPAWNFROMACTOR },
+            { "SPAWNS_ON_TARGET", TokenType.SPAWNONTARGET },
+            { "SPAWNSONTARGET", TokenType.SPAWNFROMACTOR },
+
+
 
 
 
