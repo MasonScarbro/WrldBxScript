@@ -35,6 +35,8 @@ namespace WrldBxScript
             { "LOCALIZTION", TokenType.LOCALIZATION },
             { "CRIT_CHANCE", TokenType.CRIT_CHANCE },
             { "ID", TokenType.ID },
+            { "POWER", TokenType.POWER },
+            { "EFFECTNAME", TokenType.POWER },
             { "NAME", TokenType.ID },
             { "EMPTY", TokenType.NIL },
             { "TRUE", TokenType.TRUE },
@@ -51,6 +53,10 @@ namespace WrldBxScript
             { "TRAVELS_TO_TARGET", TokenType.SPAWNFROMACTOR },
             { "SPAWNS_ON_TARGET", TokenType.SPAWNONTARGET },
             { "SPAWNSONTARGET", TokenType.SPAWNFROMACTOR },
+            { "IS_ATTACK", TokenType.ISATTK },
+            { "ATTACK_EFFECT", TokenType.ISATTK },
+            { "CHANCE", TokenType.CHANCE },
+
 
 
 

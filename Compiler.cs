@@ -11,6 +11,20 @@ using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
 using System.Threading;
 
+
+/* 
+ * NOTES:
+ * As far as effects and projectiles go,
+ * I could do a couple of things I could process
+ * it in post by rereading the traits File 
+ * or I could just skip the Traits section 
+ * of there code and process everything after
+ * The goal obviously being that I can compile the traits
+ * file with all the effects they added
+ * regardless where their projectiles or effects
+ * section is in their code
+*/
+
 namespace WrldBxScript
 {
     class Compiler
@@ -96,6 +110,20 @@ namespace WrldBxScript
                         case TokenType.PATH:
                             src += name.ToString() + ".path_icon" + EvaluateExpr(stmtv.value) + ";";
                             break;
+                        case TokenType.POWER:
+                            WrldBxEffect effect;
+                            if (TryGetCurrentEffect(stmtv.type.lexeme, out effect))
+                            {
+                                if (effect.IsAttack)
+                                {
+                                    src += $"{name}.action_attack_target = new AttackAction({effect.id}Attack);";
+                                }
+                                //else
+                                src += $"{name}.action_special_effect = new AttackAction({effect.id}Special);";
+                            }
+                            // else continue since this should only be for post process
+                            // or if effects came first in their code
+                            break;
                         default:
                             throw new CompilerError(stmtv.type, "This keyword does not exist within the " + type + " block");
                     }
@@ -123,9 +151,8 @@ namespace WrldBxScript
                         case TokenType.LIMIT:
                             src += "\t\t\nlimit = " + EvaluateExpr(stmtv.value) + ",";
                             break;
+                        case TokenType.ISATTK:
                         case TokenType.SPAWNONTARGET:
-                            UpdateEffects(name.ToString(), stmtv.type, EvaluateExpr(stmtv.value));
-                            break;
                         case TokenType.SPAWNFROMACTOR:
                             UpdateEffects(name.ToString(), stmtv.type, EvaluateExpr(stmtv.value));
                             break;
@@ -241,6 +268,18 @@ namespace WrldBxScript
                 effects.Add(id, new WrldBxEffect(id));
                 UpdateEffects(id, type, value);
             }
+        }
+
+        private bool TryGetCurrentEffect(string id, out WrldBxEffect effect)
+        {
+            if (effects.ContainsKey(id))
+            {
+                effect = effects[id];
+                return true;
+            }
+
+            effect = null;
+            return false;
         }
 
         private string ToParaCase(string str)
