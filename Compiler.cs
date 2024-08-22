@@ -33,6 +33,7 @@ namespace WrldBxScript
         private string src;
         private string modname;
         private Dictionary<string, WrldBxEffect> effects = new Dictionary<string, WrldBxEffect>();
+        private Dictionary<string, WrldBxEffect> projectiles = new Dictionary<string, WrldBxEffect>();
         public void Compile(List<Stmt> statements)
         {
             try
@@ -112,14 +113,17 @@ namespace WrldBxScript
                             break;
                         case TokenType.POWER:
                             WrldBxEffect effect;
-                            if (TryGetCurrentEffect(stmtv.type.lexeme, out effect))
+                            if (TryGetCurrentEffect(EvaluateExpr(stmtv.value).ToString(), out effect))
                             {
                                 if (effect.IsAttack)
                                 {
                                     src += $"{name}.action_attack_target = new AttackAction({effect.id}Attack);";
                                 }
-                                //else
-                                src += $"{name}.action_special_effect = new AttackAction({effect.id}Special);";
+                                else
+                                {
+                                    src += $"{name}.action_special_effect = new AttackAction({effect.id}Special);";
+                                }
+                                
                             }
                             // else continue since this should only be for post process
                             // or if effects came first in their code
@@ -135,6 +139,7 @@ namespace WrldBxScript
                     {
                         case TokenType.ID:
                             AddBlockId(name, type);
+                            UpdateEffects(name.ToString(), stmtv.type, EvaluateExpr(stmtv.value));
                             break;
                         case TokenType.PATH:
                             src += "\t\t\nsprite_path = " + EvaluateExpr(stmtv.value) + ",";
@@ -162,8 +167,25 @@ namespace WrldBxScript
 
                     }
                 }
-                
-                
+                if (type.Equals("PROJECTILES"))
+                {
+                    switch (stmtv.type.type)
+                    {
+                        case TokenType.ID:
+                            AddBlockId(name, type);
+                            UpdateEffects(name.ToString(), stmtv.type, EvaluateExpr(stmtv.value));
+                            break;
+                        case TokenType.PATH:
+                            src += "\t\t\ntexture = " + EvaluateExpr(stmtv.value) + ",";
+                            break;
+                        default:
+                            throw new CompilerError(stmtv.type, "This keyword does not exist within the " + type + " block");
+
+
+                    }
+                }
+
+
             }
             if (stmt is Stmt.Starter stmtst)
             {
@@ -270,6 +292,19 @@ namespace WrldBxScript
             }
         }
 
+        private void UpdateProjectiles(string id, Token type, object value)
+        {
+            if (projectiles.ContainsKey(id))
+            {
+                projectiles[id].UpdateStats(type, value);
+            }
+            else
+            {
+                projectiles.Add(id, new WrldBxEffect(id));
+                UpdateProjectiles(id, type, value);
+            }
+        }
+
         private bool TryGetCurrentEffect(string id, out WrldBxEffect effect)
         {
             if (effects.ContainsKey(id))
@@ -313,6 +348,12 @@ namespace WrldBxScript
             if (type.lexeme.Equals("EFFECTS"))
             {
                 src += "\t\t\n});";
+                src += "World.world.stackEffects.CallMethod(" + "add" + $", {name});";
+            }
+            if (type.lexeme.Equals("PROJECTILES"))
+            {
+                src += "\t\t\n});";
+                
             }
         }
 
@@ -328,7 +369,12 @@ namespace WrldBxScript
                 src += "\t\tvar " + name.ToString() + "AssetManager.effects_library.add(new EffectAsset {";
                 src += "\t\t\nid = " + name.ToString();
             }
-            
+            if (type.Equals("PROJECTILES"))
+            {
+                src += "\t\tvar " + name.ToString() + "AssetManager.projectiles.add(new ProjectileAsset {";
+                src += "\t\t\nid = " + name.ToString();
+            }
+
         }
 
 
@@ -336,11 +382,19 @@ namespace WrldBxScript
         {
             if (type.lexeme.Equals("TRAITS"))
             {
+                src += "\n\t}";
+                src += BuildTraitPowerFunctions();
                 src += Constants.TRAITSEOF;
                 File.WriteAllText("C:/Users/Admin/Desktop/fart.cs", src);
                 FormatCode("C:/Users/Admin/Desktop/fart.cs");
 
 
+            }
+            if (type.lexeme.Equals("EFFECTS"))
+            {
+                src += "\n\t\t}\n\t}\n}";
+                File.WriteAllText("C:/Users/Admin/Desktop/doodoo.cs", src);
+                FormatCode("C:/Users/Admin/Desktop/doodoo.cs");
             }
             src = ""; //reset src for next starter
             count = 0;
@@ -383,5 +437,22 @@ namespace WrldBxScript
         {
             return "\t\t\n" + ReplaceWhiteSpace(nameP.ToLower()) + ".base_stats[S." + type + "] += ";
         }
+
+        private string BuildTraitPowerFunctions()
+        {
+            string powerFunc = "";
+            foreach (WrldBxEffect effect in  effects.Values)
+            {
+                powerFunc = $"public static bool {effect.id}{(effect.IsAttack ? "Attack" : "Special")}(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile)";
+                powerFunc += "\n{";
+                powerFunc += "if (pTarget != null)\n{";
+                powerFunc += $"if (Toolbox.randomChance({effect.chance}))" + "\n{";
+                powerFunc += $"EffectsLibrary.spawn({effect.id}, {(effect.spawnsOnTarget ? "pTarget.a.currentTile" : "pSelf.a.currentTile")}, null, null, 0f, -1f, -1f);";
+                powerFunc += "\n}\n}\nreturn true;\n}\nreturn false;\n}";
+            }
+
+            return powerFunc;
+        }
+
     }
 }

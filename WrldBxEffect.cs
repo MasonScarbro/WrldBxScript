@@ -9,7 +9,7 @@ namespace WrldBxScript
     public class WrldBxEffect
     {
         public string id;
-        public int chance;
+        public double chance;
         public bool spawnsFromActor;
         public bool spawnsOnTarget;
         public bool IsAttack;
@@ -29,6 +29,7 @@ namespace WrldBxScript
                 Console.WriteLine("Effect " + id + " updated: " + type.lexeme);
                 Console.WriteLine("VALUE: " + value);
                 if (type.type == TokenType.ID) id = value.ToString();
+                if (type.type == TokenType.CHANCE) chance = double.Parse(value.ToString());
                 if (type.type == TokenType.SPAWNFROMACTOR) spawnsFromActor = bool.Parse(value.ToString());
                 if (type.type == TokenType.SPAWNONTARGET) spawnsOnTarget = bool.Parse(value.ToString());
                 if (type.type == TokenType.ISATTK) IsAttack = bool.Parse(value.ToString());

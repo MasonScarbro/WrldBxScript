@@ -45,7 +45,7 @@ namespace WrldBxScript
         }
         private Stmt Declaration()
         {
-            if(Match(TokenType.TRAITS, TokenType.EFFECTS))
+            if(Match(TokenType.TRAITS, TokenType.EFFECTS, TokenType.STATUSES, TokenType.PROJECTILES))
             {
                 return Starter();
             }

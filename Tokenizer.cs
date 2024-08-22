@@ -28,6 +28,7 @@ namespace WrldBxScript
             { "TRAITS", TokenType.TRAITS },
             { "EFFECTS", TokenType.EFFECTS },
             { "STATUSES", TokenType.STATUSES },
+            { "PROJECTILES", TokenType.PROJECTILES}, 
             { "DAMAGE", TokenType.DAMAGE },
             { "HEALTH", TokenType.HEALTH },
             { "ATTACK_SPEED", TokenType.ATTACK_SPEED },

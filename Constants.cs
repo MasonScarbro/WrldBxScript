@@ -8,7 +8,7 @@ namespace WrldBxScript
 {
     class Constants
     {
-        public const string TRAITSEOF = "\n\t}" + @"public static void addTraitToLocalizedLibrary(string id, string description) 
+        public const string TRAITSEOF =  @"public static void addTraitToLocalizedLibrary(string id, string description) 
                                                     {
                                                         string language = Reflection.GetField(LocalizedTextManager.instance.GetType(), LocalizedTextManager.instance, 'language') as string;
                                                         Dictionary<string, string> localizedText = Reflection.GetField(LocalizedTextManager.instance.GetType(), LocalizedTextManager.instance, ''localizedText'') as Dictionary<string, string>;
