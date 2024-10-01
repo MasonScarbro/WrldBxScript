@@ -33,6 +33,7 @@ namespace WrldBxScript
         private string src;
         private string modname;
         private Dictionary<string, WrldBxEffect> effects = new Dictionary<string, WrldBxEffect>();
+        private Dictionary<string, WrldBxTrait> traits = new Dictionary<string, WrldBxTrait>();
         private Dictionary<string, WrldBxEffect> projectiles = new Dictionary<string, WrldBxEffect>();
         public void Compile(List<Stmt> statements)
         {
@@ -69,103 +70,12 @@ namespace WrldBxScript
                 }
                 if (type.Equals("TRAITS"))
                 {
-                    switch (stmtv.type.type)
-                    {
-
-                        case TokenType.ID:
-                            AddBlockId(name, type);
-                            break;
-                        case TokenType.HEALTH:
-                            src += ToStatString(name.ToString(), "health") + EvaluateExpr(stmtv.value) + ";";
-                            break;
-                        case TokenType.DAMAGE:
-                            src += ToStatString(name.ToString(), "damage") + EvaluateExpr(stmtv.value) + ";";
-                            break;
-                        case TokenType.CRIT_CHANCE:
-                            src += ToStatString(name.ToString(), "crit_chance") + EvaluateExpr(stmtv.value) + ";";
-                            break;
-                        case TokenType.RANGE:
-                            src += ToStatString(name.ToString(), "range") + EvaluateExpr(stmtv.value) + ";";
-                            break;
-                        case TokenType.ATTACK_SPEED:
-                            src += ToStatString(name.ToString(), "attack_speed") + EvaluateExpr(stmtv.value) + ";";
-                            break;
-                        case TokenType.DODGE:
-                            src += ToStatString(name.ToString(), "dodge") + EvaluateExpr(stmtv.value) + ";";
-                            break;
-                        case TokenType.ACCURACY:
-                            src += ToStatString(name.ToString(), "accuracy") + EvaluateExpr(stmtv.value) + ";";
-                            break;
-                        case TokenType.SCALE:
-                            src += ToStatString(name.ToString(), "scale") + EvaluateExpr(stmtv.value) + ";";
-                            break;
-                        case TokenType.INTELIGENCE:
-                            src += ToStatString(name.ToString(), "intelligence") + EvaluateExpr(stmtv.value) + ";";
-                            break;
-                        case TokenType.WARFARE:
-                            src += ToStatString(name.ToString(), "warfare") + EvaluateExpr(stmtv.value) + ";";
-                            break;
-                        case TokenType.STEWARDSHIP:
-                            src += ToStatString(name.ToString(), "stewardship") + EvaluateExpr(stmtv.value) + ";";
-                            break;
-                        case TokenType.PATH:
-                            src += name.ToString() + ".path_icon" + EvaluateExpr(stmtv.value) + ";";
-                            break;
-                        case TokenType.POWER:
-                            WrldBxEffect effect;
-                            if (TryGetCurrentEffect(EvaluateExpr(stmtv.value).ToString(), out effect))
-                            {
-                                if (effect.IsAttack)
-                                {
-                                    src += $"{name}.action_attack_target = new AttackAction({effect.id}Attack);";
-                                }
-                                else
-                                {
-                                    src += $"{name}.action_special_effect = new AttackAction({effect.id}Special);";
-                                }
-                                
-                            }
-                            // else continue since this should only be for post process
-                            // or if effects came first in their code
-                            break;
-                        default:
-                            throw new CompilerError(stmtv.type, "This keyword does not exist within the " + type + " block");
-                    }
+                    UpdateTraits(name.ToString(), stmtv.type, EvaluateExpr(stmtv.value));
                 }
 
                 if (type.Equals("EFFECTS"))
                 {
-                    switch (stmtv.type.type)
-                    {
-                        case TokenType.ID:
-                            AddBlockId(name, type);
-                            UpdateEffects(name.ToString(), stmtv.type, EvaluateExpr(stmtv.value));
-                            break;
-                        case TokenType.PATH:
-                            src += "\t\t\nsprite_path = " + EvaluateExpr(stmtv.value) + ",";
-                            break;
-                        case TokenType.TIMEBETWEENFRAMES:
-                            src += "\t\t\ntime_between_frames = " + EvaluateExpr(stmtv.value) + ",";
-                            break;
-                        case TokenType.DRAW_LIGHT:
-                            src += "\t\t\ndraw_light_area = " + EvaluateExpr(stmtv.value) + ",";
-                            break;
-                        case TokenType.DRAW_LIGHT_SIZE:
-                            src += "\t\t\ndraw_light_size = " + EvaluateExpr(stmtv.value) + ",";
-                            break;
-                        case TokenType.LIMIT:
-                            src += "\t\t\nlimit = " + EvaluateExpr(stmtv.value) + ",";
-                            break;
-                        case TokenType.ISATTK:
-                        case TokenType.SPAWNONTARGET:
-                        case TokenType.SPAWNFROMACTOR:
-                            UpdateEffects(name.ToString(), stmtv.type, EvaluateExpr(stmtv.value));
-                            break;
-                        default:
-                            throw new CompilerError(stmtv.type, "This keyword does not exist within the " + type + " block");
-
-
-                    }
+                    UpdateEffects(name.ToString(), stmtv.type, EvaluateExpr(stmtv.value));
                 }
                 if (type.Equals("PROJECTILES"))
                 {
@@ -198,7 +108,7 @@ namespace WrldBxScript
                     string nameP = VerifyBlockName(block);
                     
                     Execute(block, nameP, stmtst.type.lexeme);
-                    AddReqCodeToBlock(stmtst.type, nameP);
+                    //AddReqCodeToBlock(stmtst.type, nameP);
                     count++;
                 }
                 CompileToFile(stmtst.type);
@@ -292,6 +202,19 @@ namespace WrldBxScript
             }
         }
 
+        private void UpdateTraits(string id, Token type, object value)
+        {
+            if (traits.ContainsKey(id))
+            {
+                traits[id].UpdateStats(type, value);
+            }
+            else
+            {
+                traits.Add(id, new WrldBxTrait(id));
+                UpdateTraits(id, type, value);
+            }
+        }
+
         private void UpdateProjectiles(string id, Token type, object value)
         {
             if (projectiles.ContainsKey(id))
@@ -362,11 +285,11 @@ namespace WrldBxScript
             if (type.Equals("TRAITS"))
             {
                 src += "\t\t\nActorTrait " + name.ToString() + " = new ActorTrait();";
-                src += "\t\t\n" + name.ToString() + ".id = " + '"' + name.ToString() + '"' + ';';
+                src += "\t\t\n" + name.ToString() + ".id = " + InQoutes(name.ToString()) + ';';
             }
             if (type.Equals("EFFECTS"))
             {
-                src += "\t\tvar " + name.ToString() + "AssetManager.effects_library.add(new EffectAsset {";
+                src += "\t\tvar " + name.ToString() + " = AssetManager.effects_library.add(new EffectAsset {";
                 src += "\t\t\nid = " + name.ToString();
             }
             if (type.Equals("PROJECTILES"))
@@ -377,11 +300,52 @@ namespace WrldBxScript
 
         }
 
+        private void GenerateCode(Token type)
+        {
+            if (type.lexeme.Equals("EFFECTS"))
+            {
+                foreach (WrldBxEffect effect in effects.Values)
+                {
+                    AddBlockId(effect.id, type.lexeme);
+                    src += "\t\t\nsprite_path = " + InQoutes(effect.sprite_path) + ",";
+                    src += "\t\t\ntime_between_frames = " + effect.time_between_frames + ",";
+                    src += "\t\t\ndraw_light_area = " + effect.draw_light_area + ",";
+                    src += "\t\t\ndraw_light_size = " + effect.draw_light_size + ",";
+                    src += "\t\t\nlimit = " + effect.limit + ",";
+                    AddReqCodeToBlock(type, effect.id);
+                }
+            }
+
+            if (type.lexeme.Equals("TRAITS"))
+            {
+                foreach (WrldBxTrait trait in traits.Values)
+                {
+                    AddBlockId(trait.id, type.lexeme);
+                    
+                    src += ToStatString(trait.id, "health") + trait.health + ";";
+                    src += ToStatString(trait.id, "damage") + trait.damage+ ";";
+                    src += ToStatString(trait.id, "crit_chance") + trait.critChance + ";";
+                    src += ToStatString(trait.id, "range") + trait.range + ";";
+                    src += ToStatString(trait.id, "attack_speed") + trait.attackSpeed + ";";
+                    src += ToStatString(trait.id, "dodge") + trait.dodge + ";"; 
+                    src += ToStatString(trait.id, "accuracy") + trait.accuracy + ";";
+                    src += ToStatString(trait.id, "scale") + (trait.scale / 100) + ";";
+                    src += ToStatString(trait.id, "intelligence") + trait.intelligence + ";";
+                    src += ToStatString(trait.id, "warfare") + trait.warfare + ";";
+                    src += ToStatString(trait.id, "stewardship") + trait.stewardship + ";";
+                    src += trait.id+ ".path_icon" + InQoutes(trait.pathIcon) + ";";
+
+                    AddReqCodeToBlock(type, trait.id);
+                }
+            }
+        }
+
 
         private void CompileToFile(Token type)
         {
             if (type.lexeme.Equals("TRAITS"))
             {
+                GenerateCode(type);
                 src += "\n\t}";
                 src += BuildTraitPowerFunctions();
                 src += Constants.TRAITSEOF;
@@ -392,6 +356,7 @@ namespace WrldBxScript
             }
             if (type.lexeme.Equals("EFFECTS"))
             {
+                GenerateCode(type);
                 src += "\n\t\t}\n\t}\n}";
                 File.WriteAllText("C:/Users/Admin/Desktop/doodoo.cs", src);
                 FormatCode("C:/Users/Admin/Desktop/doodoo.cs");
@@ -433,6 +398,10 @@ namespace WrldBxScript
             return str;
         }
 
+        private string InQoutes(string str)
+        {
+            return '"' + str + '"';
+        }
         private string ToStatString(string nameP, string type)
         {
             return "\t\t\n" + ReplaceWhiteSpace(nameP.ToLower()) + ".base_stats[S." + type + "] += ";
