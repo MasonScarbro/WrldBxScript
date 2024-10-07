@@ -105,6 +105,15 @@ namespace WrldBxScript
             Console.WriteLine("[line " + line + "] Error" + where + ": " + message);
             hadError = true;
         }
+        public static void Warning(string msg, int line)
+        {
+            Console.WriteLine($"WARNING: {msg} \n[line: {line}]");
+        }
+
+        public static void Warning(string msg)
+        {
+            Console.WriteLine($"WARNING: {msg}\n");
+        }
 
         private static void PrettyPrintStmts(List<Stmt> stmts)
         {

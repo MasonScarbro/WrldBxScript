@@ -215,7 +215,8 @@ namespace WrldBxScript
                     TokenType.STEWARDSHIP, TokenType.CRIT_CHANCE, TokenType.PATH,
                     TokenType.TIMEBETWEENFRAMES, TokenType.DRAW_LIGHT,
                     TokenType.DRAW_LIGHT_SIZE, TokenType.LIMIT, TokenType.SPAWNFROMACTOR,
-                    TokenType.POWER, TokenType.SPAWNONTARGET, TokenType.ISATTK, TokenType.CHANCE
+                    TokenType.POWER, TokenType.SPAWNONTARGET, TokenType.ISATTK, TokenType.CHANCE,
+                    TokenType.PARABOLIC, TokenType.FACINGTRGT, TokenType.SPEED
                 );
         }
         private bool Match(params TokenType[] types)

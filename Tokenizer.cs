@@ -45,6 +45,7 @@ namespace WrldBxScript
             { "PATH", TokenType.PATH },
             { "ICON", TokenType.PATH },
             { "SPRITE", TokenType.PATH },
+            { "TEXTURE", TokenType.PATH },
             { "LIMIT", TokenType.LIMIT },
             { "DRAW_LIGHT", TokenType.DRAW_LIGHT },
             { "LIGHT_SIZE", TokenType.DRAW_LIGHT_SIZE },
@@ -57,6 +58,13 @@ namespace WrldBxScript
             { "IS_ATTACK", TokenType.ISATTK },
             { "ATTACK_EFFECT", TokenType.ISATTK },
             { "CHANCE", TokenType.CHANCE },
+            { "SPEED", TokenType.SPEED },
+            { "PROJECTILE_SPEED", TokenType.SPEED },
+            { "PARABOLIC", TokenType.PARABOLIC },
+            { "ARCHES", TokenType.PARABOLIC },
+            { "LOOKING_AT_TARGET", TokenType.FACINGTRGT},
+            { "ALWAYS_FACING_TARGET", TokenType.FACINGTRGT},
+
 
 
 

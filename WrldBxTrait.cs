@@ -22,6 +22,7 @@ namespace WrldBxScript
         public double stewardship;
         public string pathIcon;
         public string effectName;
+        public double speed;
         public WrldBxTrait(string id)
         {
             Console.WriteLine("NEW Trait REGISTERED");
@@ -34,68 +35,72 @@ namespace WrldBxScript
 
             Console.WriteLine("Effect " + id + " updated: " + type.lexeme);
             Console.WriteLine("VALUE: " + value);
-            switch(type.type)
+            switch (type.type)
             {
                 case TokenType.ID:
-                
-                this.id = value.ToString();
-                break;
+
+                    this.id = value.ToString();
+                    break;
 
                 case TokenType.HEALTH:
-                health = Convert.ToDouble(value.ToString());
-                break;
+                    health = Convert.ToDouble(value.ToString());
+                    break;
 
                 case TokenType.DAMAGE:
-                damage = Convert.ToDouble(value.ToString());
-                break;
+                    damage = Convert.ToDouble(value.ToString());
+                    break;
 
                 case TokenType.CRIT_CHANCE:
-                critChance = Convert.ToDouble(value.ToString());
-                break;
+                    critChance = Convert.ToDouble(value.ToString());
+                    break;
 
                 case TokenType.RANGE:
-                range = Convert.ToDouble(value.ToString());
-                break;
+                    range = Convert.ToDouble(value.ToString());
+                    break;
 
                 case TokenType.ATTACK_SPEED:
-                attackSpeed = Convert.ToDouble(value.ToString());
-                break;
+                    attackSpeed = Convert.ToDouble(value.ToString());
+                    break;
 
                 case TokenType.DODGE:
-                dodge = Convert.ToDouble(value.ToString());
-                break;
+                    dodge = Convert.ToDouble(value.ToString());
+                    break;
 
                 case TokenType.ACCURACY:
-                accuracy = Convert.ToDouble(value.ToString());
-                break;
+                    accuracy = Convert.ToDouble(value.ToString());
+                    break;
 
                 case TokenType.SCALE:
-                scale = Convert.ToDouble(value.ToString());
-                break;
+                    scale = Convert.ToDouble(value.ToString());
+                    break;
 
                 case TokenType.INTELIGENCE:
-                intelligence = Convert.ToDouble(value.ToString());
-                break;
+                    intelligence = Convert.ToDouble(value.ToString());
+                    break;
 
                 case TokenType.WARFARE:
-                warfare = Convert.ToDouble(value.ToString());
-                break;
+                    warfare = Convert.ToDouble(value.ToString());
+                    break;
 
                 case TokenType.STEWARDSHIP:
-                stewardship = Convert.ToDouble(value.ToString());
-                break;
+                    stewardship = Convert.ToDouble(value.ToString());
+                    break;
 
                 case TokenType.PATH:
-                pathIcon = value.ToString();
-                break;
+                    pathIcon = value.ToString();
+                    break;
 
-                case TokenType.POWER: 
-                effectName = value.ToString();
-                break;
+                case TokenType.POWER:
+                    effectName = value.ToString();
+                    break;
+
+                case TokenType.SPEED:
+                    speed = Convert.ToDouble(value.ToString());
+                    break;
 
                 default:
-                Console.WriteLine("Unknown TokenType: " + type.type);
-                break;
+                    Console.WriteLine("Unknown TokenType: " + type.type);
+                    break;
             }
 
         }

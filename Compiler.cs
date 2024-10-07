@@ -34,7 +34,7 @@ namespace WrldBxScript
         private string modname;
         private Dictionary<string, WrldBxEffect> effects = new Dictionary<string, WrldBxEffect>();
         private Dictionary<string, WrldBxTrait> traits = new Dictionary<string, WrldBxTrait>();
-        private Dictionary<string, WrldBxEffect> projectiles = new Dictionary<string, WrldBxEffect>();
+        private Dictionary<string, WrldBxProjectile> projectiles = new Dictionary<string, WrldBxProjectile>();
         public void Compile(List<Stmt> statements)
         {
             try
@@ -79,20 +79,7 @@ namespace WrldBxScript
                 }
                 if (type.Equals("PROJECTILES"))
                 {
-                    switch (stmtv.type.type)
-                    {
-                        case TokenType.ID:
-                            AddBlockId(name, type);
-                            UpdateEffects(name.ToString(), stmtv.type, EvaluateExpr(stmtv.value));
-                            break;
-                        case TokenType.PATH:
-                            src += "\t\t\ntexture = " + EvaluateExpr(stmtv.value) + ",";
-                            break;
-                        default:
-                            throw new CompilerError(stmtv.type, "This keyword does not exist within the " + type + " block");
-
-
-                    }
+                    UpdateProjectiles(name.ToString(), stmtv.type, EvaluateExpr(stmtv.value));
                 }
 
 
@@ -223,7 +210,7 @@ namespace WrldBxScript
             }
             else
             {
-                projectiles.Add(id, new WrldBxEffect(id));
+                projectiles.Add(id, new WrldBxProjectile(id));
                 UpdateProjectiles(id, type, value);
             }
         }
@@ -315,7 +302,6 @@ namespace WrldBxScript
                     AddReqCodeToBlock(type, effect.id);
                 }
             }
-
             if (type.lexeme.Equals("TRAITS"))
             {
                 foreach (WrldBxTrait trait in traits.Values)
@@ -336,6 +322,34 @@ namespace WrldBxScript
                     src += trait.id+ ".path_icon" + InQoutes(trait.pathIcon) + ";";
 
                     AddReqCodeToBlock(type, trait.id);
+                }
+            }
+            if (type.lexeme.Equals("PROJECTILES"))
+            {
+                foreach (WrldBxProjectile projectile in projectiles.Values)
+                {
+                    AddBlockId(projectile.id, type.lexeme);
+                    if (projectile.texture.Equals("fireball"))
+                    {
+                        WrldBxScript.Warning($"{projectile.id} Does not have an assigned texture, given default texture");
+                    }
+                    src += $"\t\t\ndraw_light_area = {projectile.draw_light_area},";
+                    src += $"\t\t\ndraw_light_size = {projectile.draw_light_size},";
+                    src += $"\t\t\ntexture = {InQoutes(projectile.texture)},";
+                    src += projectile.animation_speed.HasValue ? $"\t\t\nanimation_speed = {projectile.animation_speed}" : "";
+                    src += $"\t\t\nspeed = {projectile.speed},";
+                    src += $"\t\t\nparabolic = {projectile.parabolic}";
+                    src += $"\t\t\nlook_at_target = {projectile.lookAtTarget}";
+                    src += $"\t\t\nstartScale = {projectile.scale}," +
+                           $"\t\t\ntargetScale = {projectile.scale},";
+                    src += "\t\t\nlooped = true," +
+                           "\t\t\nendEffect = string.Empty," +
+                           $"\t\t\ntexture_shadow = {InQoutes("shadow_ball")}," +
+                           $"\t\t\ntrailEffect_enabled = true," +
+                           $"sound_launch = {InQoutes("event:/SFX/WEAPONS/WeaponFireballStart")},";
+                    
+
+                    AddReqCodeToBlock(type, projectile.id);
                 }
             }
         }
@@ -406,6 +420,8 @@ namespace WrldBxScript
         {
             return "\t\t\n" + ReplaceWhiteSpace(nameP.ToLower()) + ".base_stats[S." + type + "] += ";
         }
+
+        
 
         private string BuildTraitPowerFunctions()
         {
