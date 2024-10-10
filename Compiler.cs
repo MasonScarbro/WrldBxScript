@@ -322,6 +322,7 @@ namespace WrldBxScript
                     src += trait.id+ ".path_icon" + InQoutes(trait.pathIcon) + ";";
 
                     AddReqCodeToBlock(type, trait.id);
+                    //BuildTraitPowerFunctions();
                 }
             }
             if (type.lexeme.Equals("PROJECTILES"))

@@ -12,7 +12,14 @@ namespace WrldBxScript
 
         private readonly List<Token> tokens;
         private int current = 0;
-        
+
+        private Dictionary<TokenType, int> StarterPrecedence = new Dictionary<TokenType, int>
+        {
+            { TokenType.TRAITS, 100 }, //hundo cus it needa stay at da top man
+            { TokenType.EFFECTS, 2},
+            { TokenType.STATUSES, 1},
+            
+        };
 
         public Parser(List<Token> tokens)
         {
@@ -35,6 +42,25 @@ namespace WrldBxScript
                 stmts.Add(Declaration()); // PLACEHOLDER is just so I can upload this with no ERRORS 
 
             }
+            stmts = PreProcess(stmts);
+            return stmts;
+        }
+
+
+        private List<Stmt> PreProcess(List<Stmt> stmts)
+        {
+            stmts.Sort((a, b) =>
+            {
+                if (a is Stmt.Starter starterA && b is Stmt.Starter starterB)
+                {
+                    int precedenceA = StarterPrecedence.TryGetValue(starterA.type.type, out int precA) ? precA : 0;
+                    int precedenceB = StarterPrecedence.TryGetValue(starterB.type.type, out int precB) ? precB : 0;
+
+                    return precedenceA.CompareTo(precedenceB);
+                }
+
+                return 0;
+            });
 
             return stmts;
         }
