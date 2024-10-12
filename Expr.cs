@@ -31,6 +31,17 @@ namespace WrldBxScript
 
 			public readonly Expr expression;
 		}
+
+        public class List : Expr
+        {
+            public List(List<Expr> expressions)
+            {
+                this.expressions = expressions;
+            }
+
+
+            public readonly List<Expr> expressions;
+		}
 		public class Literal : Expr
 		{
 			public Literal(object value)

@@ -10,7 +10,8 @@ namespace WrldBxScript
     {
 
         //Single Char Tokens
-        LEFT_BRACE, RIGHT_BRACE, COMMA, MINUS, PLUS, RIGHT_BRACKET, LEFT_BRACKET,
+        LEFT_BRACE, RIGHT_BRACE, COMMA, MINUS, PLUS, RIGHT_BRACKET, LEFT_BRACKET, 
+        RIGHT_PAREN, LEFT_PAREN,
 
         //One Or Two Char Tokens (Maybe) Basically Just the equal
         COLON, 

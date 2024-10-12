@@ -36,8 +36,8 @@ namespace WrldBxScript
             { "LOCALIZTION", TokenType.LOCALIZATION },
             { "CRIT_CHANCE", TokenType.CRIT_CHANCE },
             { "ID", TokenType.ID },
-            { "POWER", TokenType.POWER },
-            { "EFFECTNAME", TokenType.POWER },
+            { "POWERS", TokenType.POWER },
+            { "EFFECTNAMES", TokenType.POWER },
             { "NAME", TokenType.ID },
             { "EMPTY", TokenType.NIL },
             { "TRUE", TokenType.TRUE },
@@ -94,6 +94,8 @@ namespace WrldBxScript
 
                 case '}': AddToken(TokenType.RIGHT_BRACE); break;
                 case '{': AddToken(TokenType.LEFT_BRACE); break;
+                case ')': AddToken(TokenType.RIGHT_PAREN); break;
+                case '(': AddToken(TokenType.LEFT_PAREN); break;
                 case '[': AddToken(TokenType.LEFT_BRACKET); break;
                 case ']': AddToken(TokenType.RIGHT_BRACKET); break;
                 case ':': AddToken(TokenType.COLON); break;

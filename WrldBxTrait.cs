@@ -21,7 +21,7 @@ namespace WrldBxScript
         public double warfare;
         public double stewardship;
         public string pathIcon;
-        public string effectName;
+        public List<string> effectName = new List<string>();
         public double speed;
         public WrldBxTrait(string id)
         {
@@ -35,73 +35,97 @@ namespace WrldBxScript
 
             Console.WriteLine("Effect " + id + " updated: " + type.lexeme);
             Console.WriteLine("VALUE: " + value);
-            switch (type.type)
+            try
             {
-                case TokenType.ID:
+                switch (type.type)
+                {
+                    case TokenType.ID:
 
-                    this.id = value.ToString();
-                    break;
+                        this.id = value.ToString();
+                        break;
 
-                case TokenType.HEALTH:
-                    health = Convert.ToDouble(value.ToString());
-                    break;
+                    case TokenType.HEALTH:
+                        health = Convert.ToDouble(value.ToString());
+                        break;
 
-                case TokenType.DAMAGE:
-                    damage = Convert.ToDouble(value.ToString());
-                    break;
+                    case TokenType.DAMAGE:
+                        damage = Convert.ToDouble(value.ToString());
+                        break;
 
-                case TokenType.CRIT_CHANCE:
-                    critChance = Convert.ToDouble(value.ToString());
-                    break;
+                    case TokenType.CRIT_CHANCE:
+                        critChance = Convert.ToDouble(value.ToString());
+                        break;
 
-                case TokenType.RANGE:
-                    range = Convert.ToDouble(value.ToString());
-                    break;
+                    case TokenType.RANGE:
+                        range = Convert.ToDouble(value.ToString());
+                        break;
 
-                case TokenType.ATTACK_SPEED:
-                    attackSpeed = Convert.ToDouble(value.ToString());
-                    break;
+                    case TokenType.ATTACK_SPEED:
+                        attackSpeed = Convert.ToDouble(value.ToString());
+                        break;
 
-                case TokenType.DODGE:
-                    dodge = Convert.ToDouble(value.ToString());
-                    break;
+                    case TokenType.DODGE:
+                        dodge = Convert.ToDouble(value.ToString());
+                        break;
 
-                case TokenType.ACCURACY:
-                    accuracy = Convert.ToDouble(value.ToString());
-                    break;
+                    case TokenType.ACCURACY:
+                        accuracy = Convert.ToDouble(value.ToString());
+                        break;
 
-                case TokenType.SCALE:
-                    scale = Convert.ToDouble(value.ToString());
-                    break;
+                    case TokenType.SCALE:
+                        scale = Convert.ToDouble(value.ToString());
+                        break;
 
-                case TokenType.INTELIGENCE:
-                    intelligence = Convert.ToDouble(value.ToString());
-                    break;
+                    case TokenType.INTELIGENCE:
+                        intelligence = Convert.ToDouble(value.ToString());
+                        break;
 
-                case TokenType.WARFARE:
-                    warfare = Convert.ToDouble(value.ToString());
-                    break;
+                    case TokenType.WARFARE:
+                        warfare = Convert.ToDouble(value.ToString());
+                        break;
 
-                case TokenType.STEWARDSHIP:
-                    stewardship = Convert.ToDouble(value.ToString());
-                    break;
+                    case TokenType.STEWARDSHIP:
+                        stewardship = Convert.ToDouble(value.ToString());
+                        break;
 
-                case TokenType.PATH:
-                    pathIcon = value.ToString();
-                    break;
+                    case TokenType.PATH:
+                        pathIcon = value.ToString();
+                        break;
 
-                case TokenType.POWER:
-                    effectName = value.ToString();
-                    break;
+                    case TokenType.POWER:
+                        if (value is List<object> list)
+                        {
+                            effectName.AddRange(list.Select(item => item.ToString()));
+                        }
+                        else
+                        {
+                            effectName.Add(value.ToString());
+                        }
+                        break;
 
-                case TokenType.SPEED:
-                    speed = Convert.ToDouble(value.ToString());
-                    break;
+                    case TokenType.SPEED:
+                        speed = Convert.ToDouble(value.ToString());
+                        break;
 
-                default:
-                    Console.WriteLine("Unknown TokenType: " + type.type);
-                    break;
+                    default:
+                        throw new CompilerError(type,
+                            $"The Keyword {type.lexeme} does not exist within the PROJECTILES block");
+
+                }
             }
+            catch (CompilerError)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new CompilerError(type,
+                    $"Tried To failed to convert Value for {type.lexeme} " +
+                    $" check what type of value" +
+                    $" you should be assigning for the variable," +
+                    $" you tried {value} is that right?");
+            }
+
 
         }
     }

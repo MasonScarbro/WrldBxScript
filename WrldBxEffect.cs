@@ -39,49 +39,65 @@ namespace WrldBxScript
 
             Console.WriteLine("Effect " + id + " updated: " + type.lexeme);
             Console.WriteLine("VALUE: " + value);
-            switch (type.type)
+            try
             {
-                case TokenType.ID:
-                    id = value.ToString();
-                    break;
+                switch (type.type)
+                {
+                    case TokenType.ID:
+                        id = value.ToString();
+                        break;
 
-                case TokenType.PATH:
-                    sprite_path = value.ToString();
-                    break;
-                case TokenType.TIMEBETWEENFRAMES:
-                    time_between_frames = double.Parse(value.ToString());
-                    break;
-                case TokenType.DRAW_LIGHT:
-                    draw_light_area = bool.Parse(value.ToString());
-                    break;
-                case TokenType.DRAW_LIGHT_SIZE:
-                    draw_light_size = double.Parse(value.ToString());
-                    break;
-                case TokenType.LIMIT:
-                    limit = double.Parse(value.ToString());
-                    break;
+                    case TokenType.PATH:
+                        sprite_path = value.ToString();
+                        break;
+                    case TokenType.TIMEBETWEENFRAMES:
+                        time_between_frames = double.Parse(value.ToString());
+                        break;
+                    case TokenType.DRAW_LIGHT:
+                        draw_light_area = bool.Parse(value.ToString());
+                        break;
+                    case TokenType.DRAW_LIGHT_SIZE:
+                        draw_light_size = double.Parse(value.ToString());
+                        break;
+                    case TokenType.LIMIT:
+                        limit = double.Parse(value.ToString());
+                        break;
 
 
-                case TokenType.CHANCE:
-                    chance = double.Parse(value.ToString());
-                    break;
+                    case TokenType.CHANCE:
+                        chance = double.Parse(value.ToString());
+                        break;
 
-                case TokenType.SPAWNFROMACTOR:
-                    spawnsFromActor = bool.Parse(value.ToString());
-                    break;
+                    case TokenType.SPAWNFROMACTOR:
+                        spawnsFromActor = bool.Parse(value.ToString());
+                        break;
 
-                case TokenType.SPAWNONTARGET:
-                    spawnsOnTarget = bool.Parse(value.ToString());
-                    break;
+                    case TokenType.SPAWNONTARGET:
+                        spawnsOnTarget = bool.Parse(value.ToString());
+                        break;
 
-                case TokenType.ISATTK:
-                    IsAttack = bool.Parse(value.ToString());
-                    break;
+                    case TokenType.ISATTK:
+                        IsAttack = bool.Parse(value.ToString());
+                        break;
 
-                default:
-                    throw new CompilerError(type, "This keyword does not exist within the EFFECTS block");
-                    
+                    default:
+                        throw new CompilerError(type, "This keyword does not exist within the EFFECTS block");
+
+                }
             }
+            catch (CompilerError)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new CompilerError(type,
+                    $"Tried To failed to convert Value for {type.lexeme} " +
+                    $" check what type of value" +
+                    $" you should be assigning for the variable," +
+                    $" you tried {value} is that right?");
+            }
+            
 
         }
     }

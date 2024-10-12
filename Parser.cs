@@ -65,10 +65,9 @@ namespace WrldBxScript
             return stmts;
         }
 
-        private Expr Expression()
-        {
-            return Term();
-        }
+        
+
+
         private Stmt Declaration()
         {
             if(Match(TokenType.TRAITS, TokenType.EFFECTS, TokenType.STATUSES, TokenType.PROJECTILES))
@@ -140,7 +139,31 @@ namespace WrldBxScript
             return new Stmt.Expression(expr);
         }
 
+        private Expr Expression()
+        {
+            return Grouping();
+        }
 
+        private Expr Grouping()
+        {
+            if (Match(TokenType.LEFT_PAREN))
+            {
+                List<Expr> exprs = new List<Expr>();
+
+                do
+                {
+                    exprs.Add(Expression());
+                } 
+                while (Match(TokenType.COMMA) || Match(TokenType.PLUS));
+
+                Consume(TokenType.RIGHT_PAREN, "Expected ')' after grouping");
+
+                return new Expr.Grouping(new Expr.List(exprs));
+
+            }
+
+            return Term();
+        }
 
         private Expr Term()
         {

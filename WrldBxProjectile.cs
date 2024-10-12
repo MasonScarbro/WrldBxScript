@@ -40,43 +40,60 @@ namespace WrldBxScript
         {
             Console.WriteLine("Projectile " + id + " updated: " + type.lexeme);
             Console.WriteLine("VALUE: " + value);
-            switch(type.type)
+            try
             {
-                case TokenType.ID:
-                id = value.ToString();
-                break;
+                switch (type.type)
+                {
+                    case TokenType.ID:
+                        id = value.ToString();
+                        break;
 
-                case TokenType.PATH:
-                    texture = value.ToString();
-                break;
-                case TokenType.TIMEBETWEENFRAMES:
-                    animation_speed = Convert.ToDouble(value.ToString());
-                    break;
-                case TokenType.DRAW_LIGHT:
-                    draw_light_area = bool.Parse(value.ToString());
-                    break;
-                case TokenType.DRAW_LIGHT_SIZE:
-                    draw_light_size = Convert.ToDouble(value.ToString());
-                    break;
-                case TokenType.CHANCE:
-                    chance = Convert.ToDouble(value.ToString());
-                    break;
-                case TokenType.SPEED:
-                    speed = Convert.ToDouble(value.ToString());
-                    break;
-                case TokenType.FACINGTRGT:
-                    lookAtTarget = bool.Parse(value.ToString());
-                    break;
-                case TokenType.PARABOLIC:
-                    parabolic = bool.Parse(value.ToString());
-                    break;
-                case TokenType.SCALE:
-                    scale = Convert.ToDouble(chance.ToString());
-                    break;
-                default:
-                throw new CompilerError(type, $"The Keyword {type.lexeme} does not exist within the PROJECTILES block");
+                    case TokenType.PATH:
+                        texture = value.ToString();
+                        break;
+                    case TokenType.TIMEBETWEENFRAMES:
+                        animation_speed = Convert.ToDouble(value.ToString());
+                        break;
+                    case TokenType.DRAW_LIGHT:
+                        draw_light_area = bool.Parse(value.ToString());
+                        break;
+                    case TokenType.DRAW_LIGHT_SIZE:
+                        draw_light_size = Convert.ToDouble(value.ToString());
+                        break;
+                    case TokenType.CHANCE:
+                        chance = Convert.ToDouble(value.ToString());
+                        break;
+                    case TokenType.SPEED:
+                        speed = Convert.ToDouble(value.ToString());
+                        break;
+                    case TokenType.FACINGTRGT:
+                        lookAtTarget = bool.Parse(value.ToString());
+                        break;
+                    case TokenType.PARABOLIC:
+                        parabolic = bool.Parse(value.ToString());
+                        break;
+                    case TokenType.SCALE:
+                        scale = Convert.ToDouble(chance.ToString());
+                        break;
+                    default:
+                        throw new CompilerError(type,
+                            $"The Keyword {type.lexeme} does not exist within the PROJECTILES block");
 
+                }
             }
+            catch (CompilerError)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new CompilerError(type,
+                    $"Tried To failed to convert Value for {type.lexeme} " +
+                    $" check what type of value" +
+                    $" you should be assigning for the variable," +
+                    $" you tried {value} is that right?");
+            }
+            
 
         }
     }

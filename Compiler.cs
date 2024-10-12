@@ -115,6 +115,13 @@ namespace WrldBxScript
 
         private object EvaluateExpr(Expr expr)
         {
+            if (expr is Expr.Grouping exprG)
+            {
+                if (exprG.expression is Expr.List exprList)
+                {
+                    return exprList.expressions.Select(EvaluateExpr).ToList();
+                }
+            }
             if (expr is Expr.Literal exprL)
             {
                 if (exprL.value is bool) return exprL.value.ToString().ToLower();
@@ -362,7 +369,7 @@ namespace WrldBxScript
             {
                 GenerateCode(type);
                 src += "\n\t}";
-                src += BuildTraitPowerFunctions();
+                src += BuildDefaultPowerFunctions();
                 src += Constants.TRAITSEOF;
                 File.WriteAllText("C:/Users/Admin/Desktop/fart.cs", src);
                 FormatCode("C:/Users/Admin/Desktop/fart.cs");
@@ -424,10 +431,35 @@ namespace WrldBxScript
 
         
 
-        private string BuildTraitPowerFunctions()
+        private string BuildTraitPowerFunctions(List<string> traitsEffects)
         {
             string powerFunc = "";
-            foreach (WrldBxEffect effect in  effects.Values)
+            
+            foreach (string effectKey in traitsEffects)
+            {
+
+                if (effects.TryGetValue(effectKey, out WrldBxEffect effect))
+                {
+                    
+                    //TODO: build the effect
+                }
+                else
+                {
+                    WrldBxScript.Warning($"Could not find {effectKey}" +
+                                         $" in your effects. FAILED " +
+                                         $"to build power for it");
+
+                }
+
+            }
+
+            return powerFunc;
+        }
+
+        private string BuildDefaultPowerFunctions()
+        {
+            string powerFunc = "";
+            foreach (WrldBxEffect effect in effects.Values)
             {
                 powerFunc = $"public static bool {effect.id}{(effect.IsAttack ? "Attack" : "Special")}(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile)";
                 powerFunc += "\n{";
