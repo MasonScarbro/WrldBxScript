@@ -9,17 +9,17 @@ namespace WrldBxScript
     public class WrldBxTrait
     {
         public string id;
-        public double health;
-        public double damage;
-        public double critChance;
-        public double range;
-        public double attackSpeed;
-        public double dodge;
-        public double accuracy;
-        public double scale;
-        public double intelligence;
-        public double warfare;
-        public double stewardship;
+        public double? health;
+        public double? damage;
+        public double? critChance;
+        public double? range;
+        public double? attackSpeed;
+        public double? dodge;
+        public double? accuracy;
+        public double? scale;
+        public double? intelligence;
+        public double? warfare;
+        public double? stewardship;
         public string pathIcon;
         public List<string> effectName = new List<string>();
         public double speed;

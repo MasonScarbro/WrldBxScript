@@ -56,13 +56,13 @@ namespace WrldBxScript
 
         private Stmt Execute(Stmt stmt, object name, string type)
         {
-            
+
             if (stmt is Stmt.Var stmtv)
             {
                 if (stmtv.type.lexeme.ToUpper().Equals("MODNAME"))
                 {
                     modname = VerifyModnameType(stmtv);
-                    
+
                 }
                 else if (name == null && modname == null)
                 {
@@ -88,12 +88,12 @@ namespace WrldBxScript
             {
                 if (modname == null) modname = "MyDummyMod";
                 src += "namespace " + modname + "\n{\n";
-                src += "\t\nclass " + ToParaCase(stmtst.type.lexeme) + "\n" + "{" + "\n\tpublic static void init() \n{";
+                src += "\t\nclass " + ToParaCase(stmtst.type.lexeme) + "\n" + "{";
 
                 foreach (Stmt.Block block in stmtst.body)
                 {
                     string nameP = VerifyBlockName(block);
-                    
+
                     Execute(block, nameP, stmtst.type.lexeme);
                     //AddReqCodeToBlock(stmtst.type, nameP);
                     count++;
@@ -102,14 +102,14 @@ namespace WrldBxScript
             }
             if (stmt is Stmt.Block stmtb)
             {
-                
+
                 foreach (Stmt stat in stmtb.statements)
                 {
-                    
+
                     Execute(stat, name, type);
                 }
             }
-            
+
             return null;
         }
 
@@ -154,20 +154,23 @@ namespace WrldBxScript
                         {
                             return (string)left.ToString() + (string)right;
                         }
-                        
+
                         break;
                     case TokenType.MINUS:
                         return (double)left - (double)right;
-                        
+
                     default:
                         throw new CompilerError(exprB.oper, "Error With Processing Value After Identifier");
-                        
+
                 }
             }
             return expr;
         }
 
 
+
+
+        #region ObjectUpdateFuncs
         /// <summary>
         /// Each time we encounter a value that changes its current effect we
         /// Check to see if that effect already exists if it does then we 
@@ -187,7 +190,7 @@ namespace WrldBxScript
         {
             if (effects.ContainsKey(id))
             {
-                effects[id].UpdateStats(type , value);
+                effects[id].UpdateStats(type, value);
             }
             else
             {
@@ -222,26 +225,142 @@ namespace WrldBxScript
             }
         }
 
-        private bool TryGetCurrentEffect(string id, out WrldBxEffect effect)
+        #endregion
+
+
+        #region CodeGenAndCompilation
+
+        private void GenerateCode(Token type)
         {
-            if (effects.ContainsKey(id))
+
+            src += "\n\tpublic static void init() \n{";
+            var sb = new StringBuilder();
+            if (type.lexeme.Equals("EFFECTS"))
             {
-                effect = effects[id];
-                return true;
+                foreach (WrldBxEffect effect in effects.Values)
+                {
+                    AddBlockId(sb, effect.id, type.lexeme);
+                    sb.Append($"\t\t\nsprite_path = {InQoutes(effect.sprite_path)}," +
+                           $"\t\t\ntime_between_frames = {effect.time_between_frames}," +
+                           $"\t\t\ndraw_light_area = {effect.draw_light_area}," +
+                           $"\t\t\ndraw_light_size = {effect.draw_light_size}," +
+                           $"\t\t\nlimit = {effect.limit},");
+                    AddReqCodeToBlock(sb, type, effect.id);
+                }
+
+                sb.Append("\n\t\t}\n\t}\n}");
+                src += sb.ToString();
+            }
+            if (type.lexeme.Equals("TRAITS"))
+            {
+
+                var funcs = new StringBuilder();
+                foreach (WrldBxTrait trait in traits.Values)
+                {
+
+
+                    AddBlockId(sb, trait.id, type.lexeme);
+                    AddIfHasValue(sb, trait.health, "health", trait.id);
+                    AddIfHasValue(sb, trait.damage, "damage", trait.id);
+                    AddIfHasValue(sb, trait.critChance, "crit_chance", trait.id);
+                    AddIfHasValue(sb, trait.range, "range", trait.id);
+                    AddIfHasValue(sb, trait.attackSpeed, "attack_speed", trait.id);
+                    AddIfHasValue(sb, trait.dodge, "dodge", trait.id);
+                    AddIfHasValue(sb, trait.accuracy, "accuracy", trait.id);
+                    AddIfHasValue(sb, trait.scale, "scale", trait.id, true);
+                    AddIfHasValue(sb, trait.intelligence, "intelligence", trait.id);
+                    AddIfHasValue(sb, trait.warfare, "warfare", trait.id);
+                    AddIfHasValue(sb, trait.stewardship, "stewardship", trait.id);
+                    sb.AppendLine($"{trait.id}.path_icon = {InQoutes(trait.pathIcon)};");
+                    AddReqCodeToBlock(sb, type, trait.id);
+
+                    funcs.Append(BuildTraitPowerFunctions(trait));
+
+                }
+
+                sb.Append("\n\t}");
+                sb.Append(funcs);
+                sb.Append(Constants.TRAITSEOF);
+                src += sb.ToString();
+            }
+            if (type.lexeme.Equals("PROJECTILES"))
+            {
+                foreach (WrldBxProjectile projectile in projectiles.Values)
+                {
+                    AddBlockId(sb, projectile.id, type.lexeme);
+                    if (projectile.texture.Equals("fireball"))
+                    {
+                        WrldBxScript.Warning($"{projectile.id} Does not have an assigned texture, given default texture");
+                    }
+                    sb.Append($"\t\t\ndraw_light_area = {projectile.draw_light_area}," +
+                           $"\t\t\ndraw_light_size = {projectile.draw_light_size}," +
+                           $"\t\t\ntexture = {InQoutes(projectile.texture)},");
+                    sb.Append(projectile.animation_speed.HasValue ? $"\t\t\nanimation_speed = {projectile.animation_speed}" : "");
+                    sb.Append($"\t\t\nspeed = {projectile.speed}," +
+                           $"\t\t\nparabolic = {projectile.parabolic}" +
+                           $"\t\t\nlook_at_target = {projectile.lookAtTarget}" +
+                           $"\t\t\nstartScale = {projectile.scale}," +
+                           $"\t\t\ntargetScale = {projectile.scale},");
+                    sb.Append("\t\t\nlooped = true," +
+                           "\t\t\nendEffect = string.Empty," +
+                           $"\t\t\ntexture_shadow = {InQoutes("shadow_ball")}," +
+                           $"\t\t\ntrailEffect_enabled = true," +
+                           $"sound_launch = {InQoutes("event:/SFX/WEAPONS/WeaponFireballStart")},");
+
+
+                    AddReqCodeToBlock(sb, type, projectile.id);
+                }
+                src += sb.ToString();
             }
 
-            effect = null;
-            return false;
+            sb.Clear();
         }
 
-        private string ToParaCase(string str)
+
+
+        private void CompileToFile(Token type)
         {
-            return str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower();
+            if (type.lexeme.Equals("TRAITS"))
+            {
+                GenerateCode(type);
+                File.WriteAllText("C:/Users/Admin/Desktop/fart.cs", src);
+                FormatCode("C:/Users/Admin/Desktop/fart.cs");
+
+
+            }
+            if (type.lexeme.Equals("EFFECTS"))
+            {
+                GenerateCode(type);
+                File.WriteAllText("C:/Users/Admin/Desktop/doodoo.cs", src);
+                FormatCode("C:/Users/Admin/Desktop/doodoo.cs");
+            }
+            src = ""; //reset src for next starter
+            count = 0;
         }
+
+
+        private void FormatCode(string path, CancellationToken cancelToken = default)
+        {
+
+            string code = File.ReadAllText(path);
+            string source = CSharpSyntaxTree.ParseText(code)
+                            .GetRoot(cancelToken)
+                            .NormalizeWhitespace()
+                            .SyntaxTree
+                            .GetText(cancelToken)
+                            .ToString();
+            File.WriteAllText(path, source);
+        }
+
+        #endregion
+
+
+
+        #region VerificationHelpers
 
         private string VerifyBlockName(Stmt.Block stmtb)
-         {
-            
+        {
+
             if (stmtb.statements[0] is Stmt.Var nameP)
             {
                 if (src.Contains(" " + nameP.value + " "))
@@ -255,156 +374,17 @@ namespace WrldBxScript
             return null;
         }
 
-        private void AddReqCodeToBlock(Token type, object name)
-        {
-            if (type.lexeme.Equals("TRAITS"))
-            {
-                src += "\t\t\nAssetManger.traits.add(" + name.ToString() + ");";
-                src += "\t\t\nPlayerConfig.unlockTrait(" + name.ToString() + ".id);\n";
-            }
-            if (type.lexeme.Equals("EFFECTS"))
-            {
-                src += "\t\t\n});";
-                src += "World.world.stackEffects.CallMethod(" + "add" + $", {name});";
-            }
-            if (type.lexeme.Equals("PROJECTILES"))
-            {
-                src += "\t\t\n});";
-                
-            }
-        }
-
-        private void AddBlockId(object name, string type)
-        {
-            if (type.Equals("TRAITS"))
-            {
-                src += "\t\t\nActorTrait " + name.ToString() + " = new ActorTrait();";
-                src += "\t\t\n" + name.ToString() + ".id = " + InQoutes(name.ToString()) + ';';
-            }
-            if (type.Equals("EFFECTS"))
-            {
-                src += "\t\tvar " + name.ToString() + " = AssetManager.effects_library.add(new EffectAsset {";
-                src += "\t\t\nid = " + name.ToString();
-            }
-            if (type.Equals("PROJECTILES"))
-            {
-                src += "\t\tvar " + name.ToString() + "AssetManager.projectiles.add(new ProjectileAsset {";
-                src += "\t\t\nid = " + name.ToString();
-            }
-
-        }
-
-        private void GenerateCode(Token type)
-        {
-            if (type.lexeme.Equals("EFFECTS"))
-            {
-                foreach (WrldBxEffect effect in effects.Values)
-                {
-                    AddBlockId(effect.id, type.lexeme);
-                    src += "\t\t\nsprite_path = " + InQoutes(effect.sprite_path) + ",";
-                    src += "\t\t\ntime_between_frames = " + effect.time_between_frames + ",";
-                    src += "\t\t\ndraw_light_area = " + effect.draw_light_area + ",";
-                    src += "\t\t\ndraw_light_size = " + effect.draw_light_size + ",";
-                    src += "\t\t\nlimit = " + effect.limit + ",";
-                    AddReqCodeToBlock(type, effect.id);
-                }
-            }
-            if (type.lexeme.Equals("TRAITS"))
-            {
-                foreach (WrldBxTrait trait in traits.Values)
-                {
-                    AddBlockId(trait.id, type.lexeme);
-                    
-                    src += ToStatString(trait.id, "health") + trait.health + ";";
-                    src += ToStatString(trait.id, "damage") + trait.damage+ ";";
-                    src += ToStatString(trait.id, "crit_chance") + trait.critChance + ";";
-                    src += ToStatString(trait.id, "range") + trait.range + ";";
-                    src += ToStatString(trait.id, "attack_speed") + trait.attackSpeed + ";";
-                    src += ToStatString(trait.id, "dodge") + trait.dodge + ";"; 
-                    src += ToStatString(trait.id, "accuracy") + trait.accuracy + ";";
-                    src += ToStatString(trait.id, "scale") + (trait.scale / 100) + ";";
-                    src += ToStatString(trait.id, "intelligence") + trait.intelligence + ";";
-                    src += ToStatString(trait.id, "warfare") + trait.warfare + ";";
-                    src += ToStatString(trait.id, "stewardship") + trait.stewardship + ";";
-                    src += trait.id+ ".path_icon" + InQoutes(trait.pathIcon) + ";";
-
-                    AddReqCodeToBlock(type, trait.id);
-                    //BuildTraitPowerFunctions();
-                }
-            }
-            if (type.lexeme.Equals("PROJECTILES"))
-            {
-                foreach (WrldBxProjectile projectile in projectiles.Values)
-                {
-                    AddBlockId(projectile.id, type.lexeme);
-                    if (projectile.texture.Equals("fireball"))
-                    {
-                        WrldBxScript.Warning($"{projectile.id} Does not have an assigned texture, given default texture");
-                    }
-                    src += $"\t\t\ndraw_light_area = {projectile.draw_light_area},";
-                    src += $"\t\t\ndraw_light_size = {projectile.draw_light_size},";
-                    src += $"\t\t\ntexture = {InQoutes(projectile.texture)},";
-                    src += projectile.animation_speed.HasValue ? $"\t\t\nanimation_speed = {projectile.animation_speed}" : "";
-                    src += $"\t\t\nspeed = {projectile.speed},";
-                    src += $"\t\t\nparabolic = {projectile.parabolic}";
-                    src += $"\t\t\nlook_at_target = {projectile.lookAtTarget}";
-                    src += $"\t\t\nstartScale = {projectile.scale}," +
-                           $"\t\t\ntargetScale = {projectile.scale},";
-                    src += "\t\t\nlooped = true," +
-                           "\t\t\nendEffect = string.Empty," +
-                           $"\t\t\ntexture_shadow = {InQoutes("shadow_ball")}," +
-                           $"\t\t\ntrailEffect_enabled = true," +
-                           $"sound_launch = {InQoutes("event:/SFX/WEAPONS/WeaponFireballStart")},";
-                    
-
-                    AddReqCodeToBlock(type, projectile.id);
-                }
-            }
-        }
-
-
-        private void CompileToFile(Token type)
-        {
-            if (type.lexeme.Equals("TRAITS"))
-            {
-                GenerateCode(type);
-                src += "\n\t}";
-                src += BuildDefaultPowerFunctions();
-                src += Constants.TRAITSEOF;
-                File.WriteAllText("C:/Users/Admin/Desktop/fart.cs", src);
-                FormatCode("C:/Users/Admin/Desktop/fart.cs");
-
-
-            }
-            if (type.lexeme.Equals("EFFECTS"))
-            {
-                GenerateCode(type);
-                src += "\n\t\t}\n\t}\n}";
-                File.WriteAllText("C:/Users/Admin/Desktop/doodoo.cs", src);
-                FormatCode("C:/Users/Admin/Desktop/doodoo.cs");
-            }
-            src = ""; //reset src for next starter
-            count = 0;
-        }
-
         private string VerifyModnameType(Stmt.Var stmtv)
         {
             if (EvaluateExpr(stmtv.value) is string) return ToParaCase(ReplaceWhiteSpace(EvaluateExpr(stmtv.value).ToString()));
             //else
             throw new CompilerError(stmtv.type, "Modname CANNOT be an integer or double It MUST be a string!");
         }
-        private void FormatCode(string path, CancellationToken cancelToken = default)
-        {
-            
-            string code = File.ReadAllText(path);
-            string source = CSharpSyntaxTree.ParseText(code)
-                            .GetRoot(cancelToken)
-                            .NormalizeWhitespace()
-                            .SyntaxTree
-                            .GetText(cancelToken)
-                            .ToString();
-            File.WriteAllText(path, source);
-        }
+
+        #endregion
+
+
+        #region StringHelpers
 
         private string ReplaceWhiteSpace(string str)
         {
@@ -416,7 +396,7 @@ namespace WrldBxScript
             {
 
             }
-            
+
             return str;
         }
 
@@ -428,20 +408,66 @@ namespace WrldBxScript
         {
             return "\t\t\n" + ReplaceWhiteSpace(nameP.ToLower()) + ".base_stats[S." + type + "] += ";
         }
-
-        
-
-        private string BuildTraitPowerFunctions(List<string> traitsEffects)
+        private string ToParaCase(string str)
         {
-            string powerFunc = "";
-            
-            foreach (string effectKey in traitsEffects)
+            return str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower();
+        }
+
+        #endregion
+
+
+        #region CodeGenHelpers
+        // ####################### TRAIT HELPERS ################################ //
+        private string BuildTraitPowerFunctions(WrldBxTrait trait)
+        {
+
+            string powerFuncs = "";
+            string mainAttackFunc =
+                $"public static bool {trait.id}Attack(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile)" +
+                "\n{" +
+                "\n\tif (pTarget != null)" +
+                "\n\t{";
+
+            string mainSpecialFunc =
+                $"public static bool {trait.id}Special(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile)" +
+                "\n{" +
+                "\n\tif (pSelf.a != null)" +
+                "\n\t{";
+
+
+            foreach (string effectKey in trait.effectName)
             {
 
                 if (effects.TryGetValue(effectKey, out WrldBxEffect effect))
                 {
-                    
+
                     //TODO: build the effect
+                    powerFuncs += $"public static bool {effect.id}(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile)" +
+                                  "\n{" +
+                                  "\n\tif (pTarget != null)" +
+                                  "\n\t{" +
+                                  $"\n\t\t\tEffectsLibrary.spawn({InQoutes(effect.id)}, {(effect.spawnsOnTarget ? "pTarget.a.currentTile" : "pSelf.a.currentTile")}, null, null, 0f, -1f, -1f);" +
+                                  "\n\t\treturn true;" +
+                                  "\n\t}" +
+                                  "\n\t\treturn false;" +
+                                  "\n}";
+                    if (effect.IsAttack)
+                    {
+                        mainAttackFunc +=
+                            $"\n\t\tif (Toolbox.randomChance({effect.chance}))" +
+                            "\n\t\t{" +
+                            $"\n\t\t\t{effect.id}(pSelf, pTarget, pTile);" +
+                            "\n\t\t}";
+
+                    }
+                    else
+                    {
+                        mainSpecialFunc +=
+                            $"\n\t\tif (Toolbox.randomChance({effect.chance}))" +
+                            "\n\t\t{" +
+                            $"\n\t\t\t{effect.id}(pSelf, pTarget, pTile);" +
+                            "\n\t\t}";
+                    }
                 }
                 else
                 {
@@ -453,7 +479,16 @@ namespace WrldBxScript
 
             }
 
-            return powerFunc;
+            mainSpecialFunc += "\n\t\treturn true;" +
+                               "\n\t}" +
+                               "\n\treturn false;" +
+                               "\n}";
+            mainAttackFunc += "\n\t\treturn true;" +
+                              "\n\t}" +
+                              "\n\treturn false;" +
+                              "\n}";
+            return $"{mainSpecialFunc}\n{mainAttackFunc}\n{powerFuncs}";
+
         }
 
         private string BuildDefaultPowerFunctions()
@@ -472,5 +507,70 @@ namespace WrldBxScript
             return powerFunc;
         }
 
+        private void AddIfHasValue<T>(StringBuilder sb, T? value, string statName, string traitId, bool divideBy100 = false) where T : struct
+        {
+            if (value.HasValue)
+            {
+                string statValue = divideBy100 ? (Convert.ToDouble(value.Value) / 100).ToString() : value.ToString();
+                sb.AppendLine($"{ToStatString(traitId, statName)}{statValue};");
+            }
+        }
+
+        // ################################################################## //
+
+        // ####################### GENERAL HELPERS ################################ //
+        private void AddReqCodeToBlock(StringBuilder sb, Token type, object name)
+        {
+            if (type.lexeme.Equals("TRAITS"))
+            {
+                sb.Append("\t\t\nAssetManger.traits.add(" + name.ToString() + ");");
+                sb.Append("\t\t\nPlayerConfig.unlockTrait(" + name.ToString() + ".id);\n");
+            }
+            if (type.lexeme.Equals("EFFECTS"))
+            {
+                sb.Append("\t\t\n});");
+                sb.Append("World.world.stackEffects.CallMethod(" + "add" + $", {InQoutes(name.ToString())});");
+            }
+            if (type.lexeme.Equals("PROJECTILES"))
+            {
+                sb.Append("\t\t\n});");
+
+            }
+        }
+
+        private void AddBlockId(StringBuilder sb, object name, string type)
+        {
+            if (type.Equals("TRAITS"))
+            {
+                sb.Append($"\t\t\nActorTrait {name} = new ActorTrait();");
+                sb.Append($"\t\t\n{name}.id = {InQoutes(name.ToString())};");
+            }
+            if (type.Equals("EFFECTS"))
+            {
+                sb.Append("\t\tvar " + name.ToString() + " = AssetManager.effects_library.add(new EffectAsset {");
+                sb.Append("\t\t\nid = " + InQoutes(name.ToString()));
+            }
+            if (type.Equals("PROJECTILES"))
+            {
+                sb.Append("\t\tvar " + name.ToString() + "AssetManager.projectiles.add(new ProjectileAsset {");
+                sb.Append("\t\t\nid = " + InQoutes(name.ToString()));
+            }
+
+        }
+        // ################################################################## //
+
+        #endregion
+
+        private bool TryGetCurrentEffect(string id, out WrldBxEffect effect)
+        {
+            if (effects.ContainsKey(id))
+            {
+                effect = effects[id];
+                return true;
+            }
+
+            effect = null;
+            return false;
+        }
     }
 }
