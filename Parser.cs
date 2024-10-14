@@ -15,8 +15,9 @@ namespace WrldBxScript
 
         private Dictionary<TokenType, int> StarterPrecedence = new Dictionary<TokenType, int>
         {
-            { TokenType.TRAITS, 100 }, //hundo cus it needa stay at da top man
+            { TokenType.TRAITS, 100 }, //hundo cus it needa stay last man
             { TokenType.EFFECTS, 2},
+            { TokenType.PROJECTILES, 2},
             { TokenType.STATUSES, 1},
             
         };
@@ -265,7 +266,7 @@ namespace WrldBxScript
                     TokenType.TIMEBETWEENFRAMES, TokenType.DRAW_LIGHT,
                     TokenType.DRAW_LIGHT_SIZE, TokenType.LIMIT, TokenType.SPAWNFROMACTOR,
                     TokenType.POWER, TokenType.SPAWNONTARGET, TokenType.ISATTK, TokenType.CHANCE,
-                    TokenType.PARABOLIC, TokenType.FACINGTRGT, TokenType.SPEED
+                    TokenType.PARABOLIC, TokenType.FACINGTRGT, TokenType.SPEED, TokenType.COMBINE
                 );
         }
         private bool Match(params TokenType[] types)

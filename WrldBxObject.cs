@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace WrldBxScript
 {
-    interface Interface1
+    public interface IWrldBxObject
     {
+        string id { get; set; }
+
+        void UpdateStats(Token type, object value);
     }
 }

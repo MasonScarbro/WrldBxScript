@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace WrldBxScript
 {
-    public class WrldBxEffect
+    public class WrldBxEffect : IWrldBxObject
     {
-        public string id;
+        public string id { get; set; }
         public double chance;
         public bool spawnsFromActor;
         public bool spawnsOnTarget;
@@ -18,6 +18,7 @@ namespace WrldBxScript
         public bool draw_light_area;
         public double draw_light_size;
         public double limit;
+        public List<string> combinations;
         public WrldBxEffect(string id)
         {
             Console.WriteLine("NEW EFFECT REGISTERED");
@@ -78,6 +79,18 @@ namespace WrldBxScript
 
                     case TokenType.ISATTK:
                         IsAttack = bool.Parse(value.ToString());
+                        break;
+
+                    case TokenType.COMBINE:
+                        combinations = new List<string>();
+                        if (value is List<object> list)
+                        {
+                            combinations.AddRange(list.Select(item => item.ToString()));
+                        }
+                        else
+                        {
+                            combinations.Add(value.ToString());
+                        }
                         break;
 
                     default:

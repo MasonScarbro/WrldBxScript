@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace WrldBxScript
 {
-    class WrldBxProjectile
+    class WrldBxProjectile : IWrldBxObject
     {
-        public string id;
+        public string id { get; set; }
         public double chance;
         public string texture;
         public double speed;
@@ -18,6 +18,7 @@ namespace WrldBxScript
         public double scale;
         public double? animation_speed;
         public bool lookAtTarget;
+        public List<string> combinations;
 
         public WrldBxProjectile(string id)
         {
@@ -74,6 +75,17 @@ namespace WrldBxScript
                         break;
                     case TokenType.SCALE:
                         scale = Convert.ToDouble(chance.ToString());
+                        break;
+                    case TokenType.COMBINE:
+                        combinations = new List<string>();
+                        if (value is List<object> list)
+                        {
+                            combinations.AddRange(list.Select(item => item.ToString()));
+                        }
+                        else
+                        {
+                            combinations.Add(value.ToString());
+                        }
                         break;
                     default:
                         throw new CompilerError(type,

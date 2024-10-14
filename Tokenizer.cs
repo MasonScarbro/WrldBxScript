@@ -23,12 +23,13 @@ namespace WrldBxScript
 
         private static readonly Dictionary<string, TokenType> keywords = new Dictionary<string, TokenType>
         {
-
+            //Major:
             { "MODNAME", TokenType.MODNAME },
             { "TRAITS", TokenType.TRAITS },
             { "EFFECTS", TokenType.EFFECTS },
             { "STATUSES", TokenType.STATUSES },
             { "PROJECTILES", TokenType.PROJECTILES}, 
+            //Minor:
             { "DAMAGE", TokenType.DAMAGE },
             { "HEALTH", TokenType.HEALTH },
             { "ATTACK_SPEED", TokenType.ATTACK_SPEED },
@@ -64,6 +65,7 @@ namespace WrldBxScript
             { "ARCHES", TokenType.PARABOLIC },
             { "LOOKING_AT_TARGET", TokenType.FACINGTRGT},
             { "ALWAYS_FACING_TARGET", TokenType.FACINGTRGT},
+            { "COMBINE", TokenType.COMBINE }
 
 
 

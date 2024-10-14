@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace WrldBxScript
 {
-    public class WrldBxTrait
+    public class WrldBxTrait : IWrldBxObject
     {
-        public string id;
+        public string id { get; set; }
         public double? health;
         public double? damage;
         public double? critChance;
@@ -33,7 +33,7 @@ namespace WrldBxScript
         public void UpdateStats(Token type, object value)
         {
 
-            Console.WriteLine("Effect " + id + " updated: " + type.lexeme);
+            Console.WriteLine("Trait " + id + " updated: " + type.lexeme);
             Console.WriteLine("VALUE: " + value);
             try
             {
@@ -41,7 +41,7 @@ namespace WrldBxScript
                 {
                     case TokenType.ID:
 
-                        this.id = value.ToString();
+                        id = value.ToString();
                         break;
 
                     case TokenType.HEALTH:

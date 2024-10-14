@@ -12,25 +12,14 @@ using Microsoft.CodeAnalysis.Options;
 using System.Threading;
 
 
-/* 
- * NOTES:
- * As far as effects and projectiles go,
- * I could do a couple of things I could process
- * it in post by rereading the traits File 
- * or I could just skip the Traits section 
- * of there code and process everything after
- * The goal obviously being that I can compile the traits
- * file with all the effects they added
- * regardless where their projectiles or effects
- * section is in their code
-*/
+
 
 namespace WrldBxScript
 {
     class Compiler
     {
         private int count = 0;
-        private string src;
+        private StringBuilder src = new StringBuilder();
         private string modname;
         private Dictionary<string, WrldBxEffect> effects = new Dictionary<string, WrldBxEffect>();
         private Dictionary<string, WrldBxTrait> traits = new Dictionary<string, WrldBxTrait>();
@@ -87,8 +76,8 @@ namespace WrldBxScript
             if (stmt is Stmt.Starter stmtst)
             {
                 if (modname == null) modname = "MyDummyMod";
-                src += "namespace " + modname + "\n{\n";
-                src += "\t\nclass " + ToParaCase(stmtst.type.lexeme) + "\n" + "{";
+                src.Append("namespace " + modname + "\n{\n");
+                src.Append("\t\nclass " + ToParaCase(stmtst.type.lexeme) + "\n" + "{");
 
                 foreach (Stmt.Block block in stmtst.body)
                 {
@@ -233,23 +222,23 @@ namespace WrldBxScript
         private void GenerateCode(Token type)
         {
 
-            src += "\n\tpublic static void init() \n{";
-            var sb = new StringBuilder();
+            src.Append("\n\tpublic static void init() \n{");
+            
             if (type.lexeme.Equals("EFFECTS"))
             {
                 foreach (WrldBxEffect effect in effects.Values)
                 {
-                    AddBlockId(sb, effect.id, type.lexeme);
-                    sb.Append($"\t\t\nsprite_path = {InQoutes(effect.sprite_path)}," +
+                    AddBlockId(src, effect.id, type.lexeme);
+                    src.Append($"\t\t\nsprite_path = {InQoutes(effect.sprite_path)}," +
                            $"\t\t\ntime_between_frames = {effect.time_between_frames}," +
                            $"\t\t\ndraw_light_area = {effect.draw_light_area}," +
                            $"\t\t\ndraw_light_size = {effect.draw_light_size}," +
                            $"\t\t\nlimit = {effect.limit},");
-                    AddReqCodeToBlock(sb, type, effect.id);
+                    AddReqCodeToBlock(src, type, effect.id);
                 }
 
-                sb.Append("\n\t\t}\n\t}\n}");
-                src += sb.ToString();
+                src.Append("\n\t\t}\n\t}\n}");
+                //src += src.ToString();
             }
             if (type.lexeme.Equals("TRAITS"))
             {
@@ -259,61 +248,63 @@ namespace WrldBxScript
                 {
 
 
-                    AddBlockId(sb, trait.id, type.lexeme);
-                    AddIfHasValue(sb, trait.health, "health", trait.id);
-                    AddIfHasValue(sb, trait.damage, "damage", trait.id);
-                    AddIfHasValue(sb, trait.critChance, "crit_chance", trait.id);
-                    AddIfHasValue(sb, trait.range, "range", trait.id);
-                    AddIfHasValue(sb, trait.attackSpeed, "attack_speed", trait.id);
-                    AddIfHasValue(sb, trait.dodge, "dodge", trait.id);
-                    AddIfHasValue(sb, trait.accuracy, "accuracy", trait.id);
-                    AddIfHasValue(sb, trait.scale, "scale", trait.id, true);
-                    AddIfHasValue(sb, trait.intelligence, "intelligence", trait.id);
-                    AddIfHasValue(sb, trait.warfare, "warfare", trait.id);
-                    AddIfHasValue(sb, trait.stewardship, "stewardship", trait.id);
-                    sb.AppendLine($"{trait.id}.path_icon = {InQoutes(trait.pathIcon)};");
-                    AddReqCodeToBlock(sb, type, trait.id);
+                    AddBlockId(src, trait.id, type.lexeme);
+                    AddIfHasValue(src, trait.health, "health", trait.id);
+                    AddIfHasValue(src, trait.damage, "damage", trait.id);
+                    AddIfHasValue(src, trait.critChance, "crit_chance", trait.id);
+                    AddIfHasValue(src, trait.range, "range", trait.id);
+                    AddIfHasValue(src, trait.attackSpeed, "attack_speed", trait.id);
+                    AddIfHasValue(src, trait.dodge, "dodge", trait.id);
+                    AddIfHasValue(src, trait.accuracy, "accuracy", trait.id);
+                    AddIfHasValue(src, trait.scale, "scale", trait.id, true);
+                    AddIfHasValue(src, trait.intelligence, "intelligence", trait.id);
+                    AddIfHasValue(src, trait.warfare, "warfare", trait.id);
+                    AddIfHasValue(src, trait.stewardship, "stewardship", trait.id);
+                    src.AppendLine($"{trait.id}.path_icon = {InQoutes(trait.pathIcon)};");
+                    src.AppendLine($"{trait.id}.action_attack_target = new AttackAction({trait.id});");
+                    src.AppendLine($"{trait.id}.action_special_effect = (WorldAction)Delegate.Combine({trait.id}.action_special_effect, new WorldAction({trait.id}Attack));");
+                    AddReqCodeToBlock(src, type, trait.id);
 
                     funcs.Append(BuildTraitPowerFunctions(trait));
 
                 }
 
-                sb.Append("\n\t}");
-                sb.Append(funcs);
-                sb.Append(Constants.TRAITSEOF);
-                src += sb.ToString();
+                src.Append("\n\t}");
+                src.Append(funcs);
+                src.Append(Constants.TRAITSEOF);
+                //src += src.ToString();
             }
             if (type.lexeme.Equals("PROJECTILES"))
             {
                 foreach (WrldBxProjectile projectile in projectiles.Values)
                 {
-                    AddBlockId(sb, projectile.id, type.lexeme);
+                    AddBlockId(src, projectile.id, type.lexeme);
                     if (projectile.texture.Equals("fireball"))
                     {
                         WrldBxScript.Warning($"{projectile.id} Does not have an assigned texture, given default texture");
                     }
-                    sb.Append($"\t\t\ndraw_light_area = {projectile.draw_light_area}," +
+                    src.Append($"\t\t\ndraw_light_area = {projectile.draw_light_area}," +
                            $"\t\t\ndraw_light_size = {projectile.draw_light_size}," +
                            $"\t\t\ntexture = {InQoutes(projectile.texture)},");
-                    sb.Append(projectile.animation_speed.HasValue ? $"\t\t\nanimation_speed = {projectile.animation_speed}" : "");
-                    sb.Append($"\t\t\nspeed = {projectile.speed}," +
+                    src.Append(projectile.animation_speed.HasValue ? $"\t\t\nanimation_speed = {projectile.animation_speed}" : "");
+                    src.Append($"\t\t\nspeed = {projectile.speed}," +
                            $"\t\t\nparabolic = {projectile.parabolic}" +
                            $"\t\t\nlook_at_target = {projectile.lookAtTarget}" +
                            $"\t\t\nstartScale = {projectile.scale}," +
                            $"\t\t\ntargetScale = {projectile.scale},");
-                    sb.Append("\t\t\nlooped = true," +
+                    src.Append("\t\t\nlooped = true," +
                            "\t\t\nendEffect = string.Empty," +
                            $"\t\t\ntexture_shadow = {InQoutes("shadow_ball")}," +
                            $"\t\t\ntrailEffect_enabled = true," +
                            $"sound_launch = {InQoutes("event:/SFX/WEAPONS/WeaponFireballStart")},");
 
 
-                    AddReqCodeToBlock(sb, type, projectile.id);
+                    AddReqCodeToBlock(src, type, projectile.id);
                 }
-                src += sb.ToString();
+                src.Append("\n\t\t}\n\t}\n}");
             }
 
-            sb.Clear();
+            
         }
 
 
@@ -323,7 +314,7 @@ namespace WrldBxScript
             if (type.lexeme.Equals("TRAITS"))
             {
                 GenerateCode(type);
-                File.WriteAllText("C:/Users/Admin/Desktop/fart.cs", src);
+                File.WriteAllText("C:/Users/Admin/Desktop/fart.cs", src.ToString());
                 FormatCode("C:/Users/Admin/Desktop/fart.cs");
 
 
@@ -331,10 +322,17 @@ namespace WrldBxScript
             if (type.lexeme.Equals("EFFECTS"))
             {
                 GenerateCode(type);
-                File.WriteAllText("C:/Users/Admin/Desktop/doodoo.cs", src);
+                File.WriteAllText("C:/Users/Admin/Desktop/doodoo.cs", src.ToString());
                 FormatCode("C:/Users/Admin/Desktop/doodoo.cs");
             }
-            src = ""; //reset src for next starter
+
+            if (type.lexeme.Equals("PROJECTILES"))
+            {
+                GenerateCode(type);
+                File.WriteAllText("C:/Users/Admin/Desktop/poopoo.cs", src.ToString());
+                FormatCode("C:/Users/Admin/Desktop/poopoo.cs");
+            }
+            src.Clear(); //reset src for next starter
             count = 0;
         }
 
@@ -363,7 +361,7 @@ namespace WrldBxScript
 
             if (stmtb.statements[0] is Stmt.Var nameP)
             {
-                if (src.Contains(" " + nameP.value + " "))
+                if (src.ToString().Contains(" " + nameP.value + " "))
                 {
                     throw new CompilerError(nameP.type, "Hmmm it looks Like you have already used " + nameP.value + " Somewhere in your code!");
                 }
@@ -418,6 +416,7 @@ namespace WrldBxScript
 
         #region CodeGenHelpers
         // ####################### TRAIT HELPERS ################################ //
+
         private string BuildTraitPowerFunctions(WrldBxTrait trait)
         {
 
@@ -441,12 +440,13 @@ namespace WrldBxScript
                 if (effects.TryGetValue(effectKey, out WrldBxEffect effect))
                 {
 
-                    //TODO: build the effect
+                    
                     powerFuncs += $"public static bool {effect.id}(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile)" +
                                   "\n{" +
                                   "\n\tif (pTarget != null)" +
                                   "\n\t{" +
-                                  $"\n\t\t\tEffectsLibrary.spawn({InQoutes(effect.id)}, {(effect.spawnsOnTarget ? "pTarget.a.currentTile" : "pSelf.a.currentTile")}, null, null, 0f, -1f, -1f);" +
+                                  ApplyCombinations(effect.combinations) +
+                                  SpawnEffectCode(effect) +
                                   "\n\t\treturn true;" +
                                   "\n\t}" +
                                   "\n\t\treturn false;" +
@@ -469,10 +469,29 @@ namespace WrldBxScript
                             "\n\t\t}";
                     }
                 }
+                else if (projectiles.TryGetValue(effectKey, out WrldBxProjectile projectile))
+                {
+                    powerFuncs += $"public static bool {projectile.id}(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile)" +
+                                  "\n{" +
+                                  "\n\tif (pTarget != null)" +
+                                  "\n\t{" + 
+                                  ApplyCombinations(projectile.combinations) +
+                                  SpawnProjectileCode(projectile) +
+                                  "\n\t\treturn true;" +
+                                  "\n\t}" +
+                                  "\n\t\treturn false;" +
+                                  "\n}";
+
+                    mainAttackFunc +=
+                        $"\n\t\tif (Toolbox.randomChance({projectile.chance}))" +
+                        "\n\t\t{" +
+                        $"\n\t\t\t{projectile.id}(pSelf, pTarget, pTile);" +
+                        "\n\t\t}";
+                }
                 else
                 {
                     WrldBxScript.Warning($"Could not find {effectKey}" +
-                                         $" in your effects. FAILED " +
+                                         $" in your effects/projectiles. FAILED " +
                                          $"to build power for it");
 
                 }
@@ -489,6 +508,33 @@ namespace WrldBxScript
                               "\n}";
             return $"{mainSpecialFunc}\n{mainAttackFunc}\n{powerFuncs}";
 
+        }
+
+        private string ApplyCombinations(List<string> combinations)
+        {
+            StringBuilder sb = new StringBuilder();
+            if (combinations != null && combinations.Count != 0)
+            {
+                foreach (string combination in combinations)
+                {
+                    if (effects.TryGetValue(combination, out WrldBxEffect effect))
+                    {
+                        sb.Append(SpawnEffectCode(effect));
+                    }
+                    if (projectiles.TryGetValue(combination, out WrldBxProjectile projectile))
+                    {
+                        sb.Append(SpawnProjectileCode(projectile));
+                    }
+                    else
+                    {
+                        //do noting for now
+                    }
+                }
+
+                return sb.ToString();
+            }
+
+            return "";
         }
 
         private string BuildDefaultPowerFunctions()
@@ -556,6 +602,20 @@ namespace WrldBxScript
                 sb.Append("\t\t\nid = " + InQoutes(name.ToString()));
             }
 
+        }
+
+        private string SpawnProjectileCode(WrldBxProjectile projectile)
+        {
+            return "Vector2Int pos = pTile.pos;" +
+                   "float pDist = Vector2.Distance(pTarget.currentPosition, pos);" +
+                   "Vector3 newPoint = Toolbox.getNewPoint(pSelf.currentPosition.x, pSelf.currentPosition.y, (float)pos.x, (float)pos.y, pDist, true);" +
+                   "Vector3 newPoint2 = Toolbox.getNewPoint(pTarget.currentPosition.x, pTarget.currentPosition.y, (float)pos.x, (float)pos.y, pTarget.a.stats[S.size], true);" +
+                   $"EffectsLibrary.spawnProjectile({InQoutes(projectile.id)}, newPoint, newPoint2, 0.0f);";
+        }
+        private string SpawnEffectCode(WrldBxEffect effect)
+        {
+            return $"EffectsLibrary.spawn({InQoutes(effect.id)}, " +
+                   $"{(effect.spawnsOnTarget ? "pTarget.a.currentTile" : "pSelf.a.currentTile")}, null, null, 0f, -1f, -1f);";
         }
         // ################################################################## //
 
