@@ -1,0 +1,11 @@
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxScriptUtils\bin\Debug\net8.0\WrldBxScriptUtils.deps.json
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxScriptUtils\bin\Debug\net8.0\WrldBxScriptUtils.dll
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxScriptUtils\bin\Debug\net8.0\WrldBxScriptUtils.pdb
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxScriptUtils\obj\Debug\net8.0\WrldBxScriptUtils.fsproj.AssemblyReference.cache
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxScriptUtils\obj\Debug\net8.0\WrldBxScriptUtils.AssemblyInfoInputs.cache
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxScriptUtils\obj\Debug\net8.0\WrldBxScriptUtils.AssemblyInfo.fs
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxScriptUtils\obj\Debug\net8.0\WrldBxScriptUtils.fsproj.CoreCompileInputs.cache
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxScriptUtils\obj\Debug\net8.0\WrldBxScriptUtils.dll
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxScriptUtils\obj\Debug\net8.0\refint\WrldBxScriptUtils.dll
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxScriptUtils\obj\Debug\net8.0\WrldBxScriptUtils.pdb
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxScriptUtils\obj\Debug\net8.0\ref\WrldBxScriptUtils.dll

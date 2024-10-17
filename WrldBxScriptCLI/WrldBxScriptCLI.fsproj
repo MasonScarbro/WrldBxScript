@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	 <OutputType>Library</OutputType>
+    <TargetFramework>net4.8</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+	  <Compile Include="WriteToFiles.fs" />
+	  <Compile Include="CheckTokenTypes.fs" />
+	  <Compile Include="HandleKeyword.fs" />
+	  <Compile Include="FsCLI.fs" />
+
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="8.0.401" />
+  </ItemGroup>
+
+</Project>
