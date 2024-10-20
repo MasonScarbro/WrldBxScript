@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
 using System.Threading;
+using Microsoft.Build.Evaluation;
 
 
 
@@ -24,6 +25,7 @@ namespace WrldBxScript
         private Dictionary<string, WrldBxEffect> effects = new Dictionary<string, WrldBxEffect>();
         private Dictionary<string, WrldBxTrait> traits = new Dictionary<string, WrldBxTrait>();
         private Dictionary<string, WrldBxProjectile> projectiles = new Dictionary<string, WrldBxProjectile>();
+        private Dictionary<string, WrldBxTerraform> terraformOptions = new Dictionary<string, WrldBxTerraform>();
         public void Compile(List<Stmt> statements)
         {
             try
@@ -57,23 +59,16 @@ namespace WrldBxScript
                 {
                     throw new CompilerError(stmtv.type, "Error You Should not have a variable outside of a block UNLESS its MODNAME");
                 }
-                if (type.Equals("TRAITS"))
+                else
                 {
-                    UpdateTraits(name.ToString(), stmtv.type, EvaluateExpr(stmtv.value));
-                }
-                if (type.Equals("EFFECTS"))
-                {
-                    UpdateEffects(name.ToString(), stmtv.type, EvaluateExpr(stmtv.value));
-                }
-                if (type.Equals("PROJECTILES"))
-                {
-                    UpdateProjectiles(name.ToString(), stmtv.type, EvaluateExpr(stmtv.value));
-                }
-                if (type.Equals("TERRAFORM"))
-                {
+                    UpdateObjectByType(type, name.ToString(), stmtv.type, EvaluateExpr(stmtv.value));
 
+                    
                 }
-                //NEW_COMPILER_STARTER_HERE
+
+                //If the type has an object to update, do it
+                
+                
 
             }
             if (stmt is Stmt.Starter stmtst)
@@ -178,42 +173,38 @@ namespace WrldBxScript
         /// <param name="id"></param>
         /// <param name="type"></param>
         /// <param name="value"></param>
-        private void UpdateEffects(string id, Token type, object value)
+        
+
+        private void UpdateObjects<T>(Dictionary<string, T> dictionary, string id, Token type, object value, Func<string, T> createObject) where T : IWrldBxObject
         {
-            if (effects.ContainsKey(id))
+            if (dictionary.ContainsKey(id))
             {
-                effects[id].UpdateStats(type, value);
+                dictionary[id].UpdateStats(type, value);
             }
             else
             {
-                effects.Add(id, new WrldBxEffect(id));
-                UpdateEffects(id, type, value);
+                dictionary.Add(id, createObject(id));
+                dictionary[id].UpdateStats(type, value);
             }
         }
-
-        private void UpdateTraits(string id, Token type, object value)
+        private void UpdateObjectByType(string objectType, string id, Token type, object value)
         {
-            if (traits.ContainsKey(id))
+            switch (objectType)
             {
-                traits[id].UpdateStats(type, value);
-            }
-            else
-            {
-                traits.Add(id, new WrldBxTrait(id));
-                UpdateTraits(id, type, value);
-            }
-        }
+                case "EFFECTS":
+                    UpdateObjects(effects, id, type, value, newId => new WrldBxEffect(newId));  
+                    break;
+                case "TRAITS":
+                    UpdateObjects(traits, id, type, value, newId => new WrldBxTrait(newId));    
+                    break;
+                case "PROJECTILES":
+                    UpdateObjects(projectiles, id, type, value, newId => new WrldBxProjectile(newId));  
+                    break;
+                case "TERRAFORMING":
+                    UpdateObjects(terraformOptions, id, type, value, newId => new WrldBxTerraform(newId));  
+                    break;
+                //NEW_MAJOR_UPDATE_HERE  
 
-        private void UpdateProjectiles(string id, Token type, object value)
-        {
-            if (projectiles.ContainsKey(id))
-            {
-                projectiles[id].UpdateStats(type, value);
-            }
-            else
-            {
-                projectiles.Add(id, new WrldBxProjectile(id));
-                UpdateProjectiles(id, type, value);
             }
         }
 
@@ -226,91 +217,166 @@ namespace WrldBxScript
         {
 
             src.Append("\n\tpublic static void init() \n{");
-            
-            if (type.lexeme.Equals("EFFECTS"))
+            switch (type.lexeme)
             {
-                foreach (WrldBxEffect effect in effects.Values)
-                {
-                    AddBlockId(src, effect.id, type.lexeme);
-                    src.Append($"\t\t\nsprite_path = {InQoutes(effect.sprite_path)}," +
-                           $"\t\t\ntime_between_frames = {effect.time_between_frames}," +
-                           $"\t\t\ndraw_light_area = {effect.draw_light_area}," +
-                           $"\t\t\ndraw_light_size = {effect.draw_light_size}," +
-                           $"\t\t\nlimit = {effect.limit},");
-                    AddReqCodeToBlock(src, type, effect.id);
-                }
-
-                src.Append("\n\t\t}\n\t}\n}");
-                //src += src.ToString();
-            }
-            if (type.lexeme.Equals("TRAITS"))
-            {
-
-                var funcs = new StringBuilder();
-                foreach (WrldBxTrait trait in traits.Values)
-                {
-
-
-                    AddBlockId(src, trait.id, type.lexeme);
-                    AddIfHasValue(src, trait.health, "health", trait.id);
-                    AddIfHasValue(src, trait.damage, "damage", trait.id);
-                    AddIfHasValue(src, trait.critChance, "crit_chance", trait.id);
-                    AddIfHasValue(src, trait.range, "range", trait.id);
-                    AddIfHasValue(src, trait.attackSpeed, "attack_speed", trait.id);
-                    AddIfHasValue(src, trait.dodge, "dodge", trait.id);
-                    AddIfHasValue(src, trait.accuracy, "accuracy", trait.id);
-                    AddIfHasValue(src, trait.scale, "scale", trait.id, true);
-                    AddIfHasValue(src, trait.intelligence, "intelligence", trait.id);
-                    AddIfHasValue(src, trait.warfare, "warfare", trait.id);
-                    AddIfHasValue(src, trait.stewardship, "stewardship", trait.id);
-                    src.AppendLine($"{trait.id}.path_icon = {InQoutes(trait.pathIcon)};");
-                    src.AppendLine($"{trait.id}.action_attack_target = new AttackAction({trait.id});");
-                    src.AppendLine($"{trait.id}.action_special_effect = (WorldAction)Delegate.Combine({trait.id}.action_special_effect, new WorldAction({trait.id}Attack));");
-                    AddReqCodeToBlock(src, type, trait.id);
-
-                    funcs.Append(BuildTraitPowerFunctions(trait));
-
-                }
-
-                src.Append("\n\t}");
-                src.Append(funcs);
-                src.Append(Constants.TRAITSEOF);
-                //src += src.ToString();
-            }
-            if (type.lexeme.Equals("PROJECTILES"))
-            {
-                foreach (WrldBxProjectile projectile in projectiles.Values)
-                {
-                    AddBlockId(src, projectile.id, type.lexeme);
-                    if (projectile.texture.Equals("fireball"))
+                case "EFFECTS":
+                    foreach (WrldBxEffect effect in effects.Values)
                     {
-                        WrldBxScript.Warning($"{projectile.id} Does not have an assigned texture, given default texture");
+                        AddBlockId(src, effect.id, type.lexeme);
+                        src.Append($"\t\t\nsprite_path = {InQoutes(effect.sprite_path)}," +
+                               $"\t\t\ntime_between_frames = {effect.time_between_frames}," +
+                               $"\t\t\ndraw_light_area = {effect.draw_light_area}," +
+                               $"\t\t\ndraw_light_size = {effect.draw_light_size}," +
+                               $"\t\t\nlimit = {effect.limit},");
+                        AddReqCodeToBlock(src, type, effect.id);
                     }
-                    src.Append($"\t\t\ndraw_light_area = {projectile.draw_light_area}," +
-                           $"\t\t\ndraw_light_size = {projectile.draw_light_size}," +
-                           $"\t\t\ntexture = {InQoutes(projectile.texture)},");
-                    src.Append(projectile.animation_speed.HasValue ? $"\t\t\nanimation_speed = {projectile.animation_speed}" : "");
-                    src.Append($"\t\t\nspeed = {projectile.speed}," +
-                           $"\t\t\nparabolic = {projectile.parabolic}" +
-                           $"\t\t\nlook_at_target = {projectile.lookAtTarget}" +
-                           $"\t\t\nstartScale = {projectile.scale}," +
-                           $"\t\t\ntargetScale = {projectile.scale},");
-                    src.Append("\t\t\nlooped = true," +
-                           "\t\t\nendEffect = string.Empty," +
-                           $"\t\t\ntexture_shadow = {InQoutes("shadow_ball")}," +
-                           $"\t\t\ntrailEffect_enabled = true," +
-                           $"sound_launch = {InQoutes("event:/SFX/WEAPONS/WeaponFireballStart")},");
+
+                    src.Append("\n\t\t}\n\t}\n}");
+                    break;
+                case "TRAITS":
+                    var funcs = new StringBuilder();
+                    foreach (WrldBxTrait trait in traits.Values)
+                    {
 
 
-                    AddReqCodeToBlock(src, type, projectile.id);
-                }
-                src.Append("\n\t\t}\n\t}\n}");
+                        AddBlockId(src, trait.id, type.lexeme);
+                        AddIfHasValue(src, trait.health, "health", trait.id);
+                        AddIfHasValue(src, trait.damage, "damage", trait.id);
+                        AddIfHasValue(src, trait.critChance, "crit_chance", trait.id);
+                        AddIfHasValue(src, trait.range, "range", trait.id);
+                        AddIfHasValue(src, trait.attackSpeed, "attack_speed", trait.id);
+                        AddIfHasValue(src, trait.dodge, "dodge", trait.id);
+                        AddIfHasValue(src, trait.accuracy, "accuracy", trait.id);
+                        AddIfHasValue(src, trait.scale, "scale", trait.id, true);
+                        AddIfHasValue(src, trait.intelligence, "intelligence", trait.id);
+                        AddIfHasValue(src, trait.warfare, "warfare", trait.id);
+                        AddIfHasValue(src, trait.stewardship, "stewardship", trait.id);
+                        src.AppendLine($"{trait.id}.path_icon = {InQoutes(trait.pathIcon)};");
+                        src.AppendLine($"{trait.id}.action_attack_target = new AttackAction({trait.id});");
+                        src.AppendLine($"{trait.id}.action_special_effect = (WorldAction)Delegate.Combine({trait.id}.action_special_effect, new WorldAction({trait.id}Attack));");
+                        AddReqCodeToBlock(src, type, trait.id);
+
+                        funcs.Append(BuildTraitPowerFunctions(trait));
+
+                    }
+
+                    src.Append("\n\t}");
+                    src.Append(funcs);
+                    src.Append(Constants.TRAITSEOF);
+                    break;
+                case "PROJECTILES":
+                    foreach (WrldBxProjectile projectile in projectiles.Values)
+                    {
+                        AddBlockId(src, projectile.id, type.lexeme);
+                        if (projectile.texture.Equals("fireball"))
+                        {
+                            WrldBxScript.Warning($"{projectile.id} Does not have an assigned texture, given default texture");
+                        }
+                        if (terraformOptions.ContainsKey(projectile.terraformOption))
+                        {
+                            //When we introduce Globals we may need to change this
+                            throw new CompilerError(type, $"{projectile.terraformOption} Could not be found in your TERRAFORMING block");
+                        }
+                        src.Append($"\t\t\ndraw_light_area = {projectile.draw_light_area}," +
+                               $"\t\t\ndraw_light_size = {projectile.draw_light_size}," +
+                               $"\t\t\ntexture = {InQoutes(projectile.texture)},");
+                        src.Append(projectile.animation_speed.HasValue ? $"\t\t\nanimation_speed = {projectile.animation_speed}" : "");
+                        src.Append($"\t\t\nspeed = {projectile.speed}," +
+                               $"\t\t\nparabolic = {projectile.parabolic}" +
+                               $"\t\t\nlook_at_target = {projectile.lookAtTarget}" +
+                               $"\t\t\nstartScale = {projectile.scale}," +
+                               $"\t\t\ntargetScale = {projectile.scale}," +
+                               $"\t\t\nterraformOption = {projectile.terraformOption},");
+                        src.Append("\t\t\nlooped = true," +
+                               "\t\t\nendEffect = string.Empty," +
+                               $"\t\t\ntexture_shadow = {InQoutes("shadow_ball")}," +
+                               $"\t\t\ntrailEffect_enabled = true," +
+                               $"sound_launch = {InQoutes("event:/SFX/WEAPONS/WeaponFireballStart")},");
+
+
+                        AddReqCodeToBlock(src, type, projectile.id);
+                    }
+                    src.Append("\n\t\t}\n\t}\n}");
+                    break;
+                case "TERRAFORMING":
+                    foreach (WrldBxTerraform terraformOption in terraformOptions.Values)
+                    {
+                        AddBlockId(src, terraformOption.id, type.lexeme);
+                        if (terraformOption.explode_strength.HasValue && terraformOption.explode_tile == false)
+                        {
+                            terraformOption.explode_tile = true;
+                        }
+                        if (!terraformOption.explode_strength.HasValue && terraformOption.explode_tile == true)
+                        {
+                            WrldBxScript.Warning($"You did not set explode_strength it was given a default value of 1");
+                        }
+                        src.Append(
+                            $"flash = {terraformOption.flash}," +
+                            $"explode_tile = {terraformOption.explode_tile}," +
+                            $"applyForce = {terraformOption.applyForce}," +
+                            $"force_power = {terraformOption.force_power}," +
+                            $"explode_strength = {terraformOption.explode_strength}," +
+                            $"damageBuildings = {terraformOption.damageBuildings}," +
+                            $"setFire = {terraformOption.setFire}," +
+                            $"addBurned = {terraformOption.addBurned}," +
+                            $"shake_intensity = 1f," +
+                            $"damage = {terraformOption.damage},"
+
+                            );
+                        AddReqCodeToBlock(src, type, terraformOption.id);
+                    }
+                    src.Append("\n\t\t}\n\t}\n}");
+                    break;
+                //NEW_MAJOR_GEN_HERE
+                default:
+                    throw new InvalidOperationException($"Unrecognized lexeme: {type.lexeme}");
             }
-
+            
+            
             
         }
 
+        //override
+        //private void GenerateCode(string objType, Stmt.Var current)
+        //{
+        //    if (!src.ToString().Contains("\n\tpublic static void init() \n{"))
+        //    {
+        //        src.Append("\n\tpublic static void init() \n{");
+        //    }
+        //    if (objType.Equals("TERRAFORM"))
+        //    {
+                
+        //        if (current.type.type == TokenType.ID) 
+        //        {
+                    
+        //            AddBlockId(src, EvaluateExpr(current.value), objType); 
+        //        }
+        //        else
+        //        {
+        //            src.AppendLine($"{current.type.lexeme.ToLower()} = {EvaluateExpr(current.value)}");
+        //        }
+        //        FinalizeBlock(objType);
+        //    }
+            
 
+        //}
+
+        
+        //// Call this method explicitly after processing all attributes
+        //private void FinalizeBlock(string objType)
+        //{
+            
+        //    if (objType.Equals("TERRAFORM"))
+        //    {
+        //        if (count == 1)  // Ensure block is closed only after all vars
+        //        {
+        //            src.AppendLine("});");
+        //            src.AppendLine($"// Block End {objType}");
+        //            count = 0;
+        //        }
+        //    }
+            
+        //}
 
         private void CompileToFile(Token type)
         {
@@ -334,6 +400,12 @@ namespace WrldBxScript
                 GenerateCode(type);
                 File.WriteAllText("C:/Users/Admin/Desktop/poopoo.cs", src.ToString());
                 FormatCode("C:/Users/Admin/Desktop/poopoo.cs");
+            }
+            if (type.lexeme.Equals("TERRAFORM"))
+            {
+                //src.Append("\n\t\t}\n\t}\n}");
+                File.WriteAllText("C:/Users/Admin/Desktop/terra.cs", src.ToString());
+                FormatCode("C:/Users/Admin/Desktop/terra.cs");
             }
             src.Clear(); //reset src for next starter
             count = 0;
@@ -585,6 +657,10 @@ namespace WrldBxScript
                 sb.Append("\t\t\n});");
 
             }
+            if ((type.lexeme.Equals("TERRAFORM")))
+            {
+                sb.Append("\t\t\n});");
+            }
         }
 
         private void AddBlockId(StringBuilder sb, object name, string type)
@@ -604,7 +680,11 @@ namespace WrldBxScript
                 sb.Append("\t\tvar " + name.ToString() + "AssetManager.projectiles.add(new ProjectileAsset {");
                 sb.Append("\t\t\nid = " + InQoutes(name.ToString()));
             }
-
+            if ((type.Equals("TERRAFORM")))
+            {
+                sb.Append("AssetManager.terraform.add(new TerraformOptions\n\t{");
+                sb.Append("\t\t\nid = " + InQoutes(name.ToString() + ","));
+            }
         }
 
         private string SpawnProjectileCode(WrldBxProjectile projectile)

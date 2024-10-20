@@ -18,6 +18,7 @@ namespace WrldBxScript
         public double scale;
         public double? animation_speed;
         public bool lookAtTarget;
+        public string terraformOption;
         public List<string> combinations;
 
         public WrldBxProjectile(string id)
@@ -76,6 +77,9 @@ namespace WrldBxScript
                     case TokenType.SCALE:
                         scale = Convert.ToDouble(chance.ToString());
                         break;
+                    case TokenType.TERRAFORMOP:
+                        terraformOption = value.ToString();
+                        break;
                     case TokenType.COMBINE:
                         combinations = new List<string>();
                         if (value is List<object> list)
@@ -100,7 +104,7 @@ namespace WrldBxScript
             catch (Exception ex)
             {
                 throw new CompilerError(type,
-                    $"Tried To failed to convert Value for {type.lexeme} " +
+                    $"Tried and failed to convert Value for {type.lexeme} " +
                     $" check what type of value" +
                     $" you should be assigning for the variable," +
                     $" you tried {value} is that right?");

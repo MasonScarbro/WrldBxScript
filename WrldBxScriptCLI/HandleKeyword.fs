@@ -3,6 +3,10 @@ open System
 open System.Collections.Generic
 open CheckTokenTypes
 open WriteToFiles
+
+let inQoutes (str: string) = 
+    sprintf "\"%s\"" str
+
 let handleCreateKeyword (dev: bool) = 
     printfn "Is this A Major? If So Please supply its name: (else press enter)"
     let majorName = Console.ReadLine().ToUpper();
@@ -34,8 +38,12 @@ let handleCreateKeyword (dev: bool) =
             |> Array.map (fun s -> 
                 let trimmed = s.Trim()
                 let index = trimmed.IndexOf('.')
-                if index >= 0 then 
-                    trimmed.Substring(index + 1).Trim() // Return everything after the period
+                if index >= 1 then 
+                    
+                    if not (Char.IsDigit(trimmed.[index - 1])) then
+                        trimmed.Substring(index + 1).Trim() // Return everything after the period
+                    else
+                    trimmed
                 else
                 trimmed
                 )
@@ -47,6 +55,17 @@ let handleCreateKeyword (dev: bool) =
         let finalSnippet = cleanSnippet (readSnippet ())    
         printfn "You entered the following cleaned snippet:\n%s" finalSnippet
 
+        let typeFromValue (value: string) =
+                    match value with
+                    | v when v.StartsWith("\"") && v.EndsWith("\"") -> "string"
+                    | v when v.Contains("f") -> "double"
+                    | v when v.Contains(".") -> "double"
+                    | v when v.Contains("true") or v.Contains("false") -> "bool"
+                    | _ -> 
+                        let mutable intResult = 0
+                        if Int32.TryParse(value, &intResult) then "double"
+                        else "unknown"
+
         let createDict (input: string) = 
             let dict = Dictionary<string, string>()
             let parts = input.Split([| ','; ';' |], StringSplitOptions.RemoveEmptyEntries)
@@ -57,7 +76,8 @@ let handleCreateKeyword (dev: bool) =
                 if keyValue.Length = 2 then
                     let key = keyValue.[0].Trim()
                     let value = keyValue.[1].Trim()
-                    if not (containsToken (key)) then
+                    let propType = typeFromValue value
+                    if propType <> "unknown" && not (containsToken (key)) then
                         dict.[key] <- value
             dict
 
@@ -80,14 +100,14 @@ let handleCreateKeyword (dev: bool) =
                 if i < dict.Count - 1 then tokenizerSrc.Append(",\n") |> ignore else tokenizerSrc.Append("\n") |> ignore
 
                 // Format and append the second type of output
-                if i > 0 then tokenTypeSrc.Append(", ") |> ignore 
-                tokenTypeSrc.AppendFormat(sprintf "%s" upperKey) |> ignore
+                
+                tokenTypeSrc.AppendFormat(sprintf "%s, " upperKey) |> ignore
                 
 
                 // Format and append the third type of output
                 if i > 0 then isMinorSrc.Append(",") |> ignore
                 isMinorSrc.AppendFormat(sprintf "TokenType.%s" upperKey) |> ignore
-                if i < dict.Count - 1 then isMinorSrc.Append(" ") |> ignore
+                if i = dict.Count - 1 then isMinorSrc.Append(" ") |> ignore
             )
             tokenizerSrc.Append("\n//NEW_MINORS_HERE") |> ignore
             tokenTypeSrc.Append("\n//NEW_MINORS_HERE") |> ignore
@@ -105,7 +125,7 @@ let handleCreateKeyword (dev: bool) =
 
 
         let keywordsSrcList = buildSrc (dict)
-        rewriteSrcFiles (keywordsSrcList)
+        rewriteSrcFiles (keywordsSrcList) (majorName)
 
         
         let keywordsArray = List.toArray(keywordsSrcList)
@@ -120,15 +140,25 @@ let handleCreateKeyword (dev: bool) =
         if yorn.Equals("Y") then
 
             let buildObjectSrc (majorName: string) (dict: Dictionary<string, string>) =
-                let typeFromValue (value: string) =
-                    match value with
-                    | v when v.StartsWith("\"") && v.EndsWith("\"") -> "string"
-                    | v when v.Contains("f") -> "double"
-                    | v when v.Contains(".") -> "double"
-                    | _ -> 
-                        let mutable intResult = 0
-                        if Int32.TryParse(value, &intResult) then "double"
-                        else "unknown"
+                let buildSwitchCases ()= 
+                    let switchBuilder = System.Text.StringBuilder()
+
+                    
+                    dict |> Seq.iter (fun kvp ->
+                        let key = kvp.Key
+                        let value = kvp.Value
+                        let upperKey = key.ToUpper()
+                        let propType = typeFromValue value // Get type from the actual value
+
+                        switchBuilder.AppendLine(sprintf "    case TokenType.%s:" upperKey) |> ignore
+                        switchBuilder.AppendLine(sprintf "        %s = %s.Parse(value.ToString());" (key) propType) |> ignore
+                        switchBuilder.AppendLine("        break;") |> ignore
+                    )
+                    switchBuilder.AppendLine("    default:") |> ignore
+                    switchBuilder.AppendLine("        throw new CompilerError(type,") |> ignore
+                    switchBuilder.AppendLine(sprintf "            $\"The Keyword {type.lexeme} does not exist within the block\");") |> ignore
+                    switchBuilder.ToString()
+
 
                 let objectSrc = 
                     let props = 
@@ -144,28 +174,68 @@ let handleCreateKeyword (dev: bool) =
                     $"""
                     namespace WrldBxScript
                     {{
-                        public class WrldBx{majorName} : IWrldBxObject
+                        public class WrldBx{getParaCase (majorName)} : IWrldBxObject
                         {{
                             public string id {{ get; set; }}
                             {props}
-                            public WrldBx{majorName}(string id)
+                            public WrldBx{getParaCase (majorName)}(string id)
                             {{
                                 this.id = id;
                             }}
 
                             public void UpdateStats(Token type, object value)
                             {{
+                                switch (type.type)
+                                {{
+
+                                {buildSwitchCases()}
+                                }}
                             }}
                         }}
                     }}
                     """
                 objectSrc
 
-                
+            let buildCompilerSrc (dict: Dictionary<string, string>) = 
+                let updateObjectsSrc = System.Text.StringBuilder()
+                let generateCodeSrc =  System.Text.StringBuilder()
+
+                let buildEach () =
+                    let codeGen = System.Text.StringBuilder()
+                    dict.Keys
+                    |> Seq.iter (fun key ->
+                        ignore (codeGen.AppendLine($"{key} = {{{majorName.ToLower()}.{key}}},"))
+                    )
+                    codeGen.ToString()  // Return the generated code
+
+                updateObjectsSrc.Append(
+                    $"""
+                    case {inQoutes (majorName)}:
+                        UpdateObjects(terraformOptions, id, type, value, newId => new WrldBx{getParaCase majorName}(newId));
+                        break;
+                    """
+                ) |> ignore
+                generateCodeSrc.Append (
+                    $"""
+                    case {inQoutes (majorName)}:
+                        foreach (WrldBx{getParaCase majorName} {majorName.ToLower()} in {majorName.ToLower()}s.Values)
+                        {{
+                            AddBlockId(src, {majorName}.id, type.lexeme);
+                            src.Append(
+                            {buildEach()}
+                            );
+                            AddReqCodeToBlock(src, type, {majorName.ToLower()}.id);
+                        }}
+                    """
+                ) |> ignore
+                (updateObjectsSrc.ToString(), generateCodeSrc.ToString())
 
             // Call the function to build the object source code
             let sourceCode = buildObjectSrc majorName dict
+            let updateObjectsSrc, generateCodeSrc = buildCompilerSrc dict
+            
             printfn "Generated Source Code:\n%s" sourceCode
+            writeObjectToFile (majorName) (sourceCode)
                 
         
 

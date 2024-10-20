@@ -27,7 +27,7 @@ let main args =
                     printfn "args: %s" args.[i + 1]
                     
                     handleCreateKeyword (true)
-                    i <- i + 1 // Increment i to skip the -d argument
+                    i <- i + 1 
                 else
                     handleCreateKeyword (false)
             

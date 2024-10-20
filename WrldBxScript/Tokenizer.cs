@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,8 +28,8 @@ namespace WrldBxScript
             { "TRAITS", TokenType.TRAITS },
             { "EFFECTS", TokenType.EFFECTS },
             { "STATUSES", TokenType.STATUSES },
-            { "PROJECTILES", TokenType.PROJECTILES}, 
-            { "TERRAFORM", TokenType.TERRAFORM },
+            { "PROJECTILES", TokenType.PROJECTILES},
+            { "TERRAFORMING", TokenType.TERRAFORM },
             //NEW_MAJORS_HERE
             //Minor:
             { "DAMAGE", TokenType.DAMAGE },
@@ -67,7 +67,17 @@ namespace WrldBxScript
             { "ARCHES", TokenType.PARABOLIC },
             { "LOOKING_AT_TARGET", TokenType.FACINGTRGT},
             { "ALWAYS_FACING_TARGET", TokenType.FACINGTRGT},
-            { "COMBINE", TokenType.COMBINE }
+            { "COMBINE", TokenType.COMBINE },
+            { "FLASH", TokenType.FLASH },
+            { "ADDBURNED", TokenType.ADDBURNED },
+            { "APPLYFORCE", TokenType.APPLYFORCE },
+            { "FORCE_POWER", TokenType.FORCE_POWER },
+            { "EXPLODE_TILE", TokenType.EXPLODE_TILE },
+            { "EXPLODE_STRENGTH", TokenType.EXPLODE_STRENGTH },
+            { "DAMAGEBUILDINGS", TokenType.DAMAGEBUILDINGS },
+            { "SETFIRE", TokenType.SETFIRE },
+            { "SHAKE", TokenType.SHAKE },
+            { "TERRAFORM_OPTION", TokenType.TERRAFORMOP },
             //NEW_MINORS_HERE
 
 
