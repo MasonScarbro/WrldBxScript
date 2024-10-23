@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+	  <Compile Include="HandleUpgrade.fs" />
 	  <Compile Include="WriteToFiles.fs" />
 	  <Compile Include="CheckTokenTypes.fs" />
 	  <Compile Include="HandleKeyword.fs" />

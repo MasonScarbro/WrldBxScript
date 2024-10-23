@@ -4,8 +4,8 @@ module FsCLI
 open System
 open System.Collections.Generic
 open HandleKeyword
-
-let commands = ["--help"; "--exit"; "--version"; "--createkeyword"]
+open HandleUpgrade
+let commands = ["--help"; "--exit"; "--version"; "--createkeyword"; "--upgrade"]
 
 let commandExists command = 
     List.contains command commands      
@@ -19,7 +19,7 @@ let main args =
         while i < args.Length do
             printfn "args: %s" args.[i]
             match args.[i] with
-            | "--help" -> printfn "Help: Available commands are --help, --exit, --version, --createkeyword"
+            | "--help" -> printfn "Help: Available commands are --help, --exit, --version, --createkeyword, --upgrade"
             | "--version" -> printfn "0.1.0"
             | "--exit" -> printfn "Exiting..."; Environment.Exit(0)
             | "--createkeyword" -> 
@@ -30,7 +30,7 @@ let main args =
                     i <- i + 1 
                 else
                     handleCreateKeyword (false)
-            
+            | "--upgrade" -> handleUpgrade()
             | _ -> printfn "Unknown command: %s" args.[i]
             i <- i + 1
     else

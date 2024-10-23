@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
 using System.Threading;
 using Microsoft.Build.Evaluation;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 
 
@@ -25,6 +26,7 @@ namespace WrldBxScript
         private Dictionary<string, WrldBxEffect> effects = new Dictionary<string, WrldBxEffect>();
         private Dictionary<string, WrldBxTrait> traits = new Dictionary<string, WrldBxTrait>();
         private Dictionary<string, WrldBxProjectile> projectiles = new Dictionary<string, WrldBxProjectile>();
+        private Dictionary<string, WrldBxStatus> statuses = new Dictionary<string, WrldBxStatus>();
         private Dictionary<string, WrldBxTerraform> terraformOptions = new Dictionary<string, WrldBxTerraform>();
         public void Compile(List<Stmt> statements)
         {
@@ -203,7 +205,10 @@ namespace WrldBxScript
                 case "TERRAFORMING":
                     UpdateObjects(terraformOptions, id, type, value, newId => new WrldBxTerraform(newId));  
                     break;
-                //NEW_MAJOR_UPDATE_HERE  
+                case "STATUSES":
+                    UpdateObjects(statuses, id, type, value, newId => new WrldBxStatus(newId));
+                    break;
+                    //NEW_MAJOR_UPDATE_HERE  
 
             }
         }
@@ -254,7 +259,8 @@ namespace WrldBxScript
                         src.AppendLine($"{trait.id}.path_icon = {InQoutes(trait.pathIcon)};");
                         src.AppendLine($"{trait.id}.action_attack_target = new AttackAction({trait.id});");
                         src.AppendLine($"{trait.id}.action_special_effect = (WorldAction)Delegate.Combine({trait.id}.action_special_effect, new WorldAction({trait.id}Attack));");
-                        AddReqCodeToBlock(src, type, trait.id);
+                        //NOTE: test if this works if you never put any powers ^
+                        AddReqCodeToBlock(src, type, trait.id, $"addTraitToLocalizedLibrary({trait.id}, {InQoutes(trait.desc)});");
 
                         funcs.Append(BuildTraitPowerFunctions(trait));
 
@@ -264,6 +270,35 @@ namespace WrldBxScript
                     src.Append(funcs);
                     src.Append(Constants.TRAITSEOF);
                     break;
+                case "STATUSES":
+                    foreach (WrldBxStatus status in statuses.Values)
+                    {
+
+
+                        AddBlockId(src, status.id, type.lexeme);
+                        AddIfHasValue(src, status.health, "health", status.id);
+                        AddIfHasValue(src, status.damage, "damage", status.id);
+                        AddIfHasValue(src, status.critChance, "crit_chance", status.id);
+                        AddIfHasValue(src, status.range, "range", status.id);
+                        AddIfHasValue(src, status.attackSpeed, "attack_speed", status.id);
+                        AddIfHasValue(src, status.dodge, "dodge", status.id);
+                        AddIfHasValue(src, status.accuracy, "accuracy", status.id);
+                        AddIfHasValue(src, status.scale, "scale", status.id, true);
+                        AddIfHasValue(src, status.intelligence, "intelligence", status.id);
+                        AddIfHasValue(src, status.warfare, "warfare", status.id);
+                        AddIfHasValue(src, status.stewardship, "stewardship", status.id);
+                        src.AppendLine($"{status.id}.path_icon = {InQoutes(status.pathIcon)};");
+                        
+                        AddReqCodeToBlock(src, type, status.id);
+
+                        
+
+                    }
+
+                    src.Append("\n\t}");
+                    src.Append(Constants.STATUSESEOF);
+                    break;
+
                 case "PROJECTILES":
                     foreach (WrldBxProjectile projectile in projectiles.Values)
                     {
@@ -628,62 +663,73 @@ namespace WrldBxScript
             return powerFunc;
         }
 
-        private void AddIfHasValue<T>(StringBuilder sb, T? value, string statName, string traitId, bool divideBy100 = false) where T : struct
+        private void AddIfHasValue<T>(StringBuilder sb, T? value, string statName, string id, bool divideBy100 = false) where T : struct
         {
             if (value.HasValue)
             {
                 string statValue = divideBy100 ? (Convert.ToDouble(value.Value) / 100).ToString() : value.ToString();
-                sb.AppendLine($"{ToStatString(traitId, statName)}{statValue};");
+                sb.AppendLine($"{ToStatString(id, statName)}{statValue};");
             }
         }
 
         // ################################################################## //
 
         // ####################### GENERAL HELPERS ################################ //
-        private void AddReqCodeToBlock(StringBuilder sb, Token type, object name)
+        private void AddReqCodeToBlock(StringBuilder sb, Token type, object name, string appedage = null)
         {
-            if (type.lexeme.Equals("TRAITS"))
+            switch (type.lexeme)
             {
-                sb.Append("\t\t\nAssetManger.traits.add(" + name.ToString() + ");");
-                sb.Append("\t\t\nPlayerConfig.unlockTrait(" + name.ToString() + ".id);\n");
-            }
-            if (type.lexeme.Equals("EFFECTS"))
-            {
-                sb.Append("\t\t\n});");
-                sb.Append("World.world.stackEffects.CallMethod(" + "add" + $", {InQoutes(name.ToString())});");
-            }
-            if (type.lexeme.Equals("PROJECTILES"))
-            {
-                sb.Append("\t\t\n});");
+                case "TRAITS":
+                    sb.Append("\t\t\nAssetManger.traits.add(" + name.ToString() + ");");
+                    sb.Append("\t\t\nPlayerConfig.unlockTrait(" + name.ToString() + ".id);\n");
+                    sb.Append(appedage);
+                    break;
 
+                case "EFFECTS":
+                    sb.Append("\t\t\n});");
+                    sb.Append("World.world.stackEffects.CallMethod(" + "add" + $", {InQoutes(name.ToString())});");
+                    break;
+
+                case "STATUSES":
+                    sb.Append($"localizeStatus({name}.id, {name}.id, {name}.description);");
+                    sb.Append($"AssetManager.status.add({name});");
+                    break;
+
+                case "TERRAFORM":
+                case "PROJECTILES":
+                    sb.Append("\t\t\n});");
+                    break;
             }
-            if ((type.lexeme.Equals("TERRAFORM")))
-            {
-                sb.Append("\t\t\n});");
-            }
+            
         }
 
         private void AddBlockId(StringBuilder sb, object name, string type)
         {
-            if (type.Equals("TRAITS"))
+            switch (type)
             {
-                sb.Append($"\t\t\nActorTrait {name} = new ActorTrait();");
-                sb.Append($"\t\t\n{name}.id = {InQoutes(name.ToString())};");
-            }
-            if (type.Equals("EFFECTS"))
-            {
-                sb.Append("\t\tvar " + name.ToString() + " = AssetManager.effects_library.add(new EffectAsset {");
-                sb.Append("\t\t\nid = " + InQoutes(name.ToString()));
-            }
-            if (type.Equals("PROJECTILES"))
-            {
-                sb.Append("\t\tvar " + name.ToString() + "AssetManager.projectiles.add(new ProjectileAsset {");
-                sb.Append("\t\t\nid = " + InQoutes(name.ToString()));
-            }
-            if ((type.Equals("TERRAFORM")))
-            {
-                sb.Append("AssetManager.terraform.add(new TerraformOptions\n\t{");
-                sb.Append("\t\t\nid = " + InQoutes(name.ToString() + ","));
+                case "TRAITS":
+                    sb.Append($"\t\t\nActorTrait {name} = new ActorTrait();");
+                    sb.Append($"\t\t\n{name}.id = {InQoutes(name.ToString())};");
+                    break;
+
+                case "EFFECTS":
+                    sb.Append($"\t\tvar {name.ToString()} = AssetManager.effects_library.add(new EffectAsset {{");
+                    sb.Append($"\t\t\nid = {InQoutes(name.ToString())}");
+                    break;
+
+                case "STATUSES":
+                    sb.Append($"StatusEffect {name} = new StatusEffect();");
+                    sb.Append($"{name}.id = {InQoutes(name.ToString())};");
+                    break;
+                case "PROJECTILES":
+                    sb.Append($"\t\tvar {name.ToString()} = AssetManager.projectiles.add(new ProjectileAsset {{");
+                    sb.Append($"\t\t\nid = {InQoutes(name.ToString())}");
+                    break;
+
+                case "TERRAFORM":
+                    sb.Append("AssetManager.terraform.add(new TerraformOptions\n\t{");
+                    sb.Append($"\t\t\nid = {InQoutes(name.ToString())},");
+                    break;
             }
         }
 

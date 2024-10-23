@@ -223,6 +223,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="WrldBxObject.cs" />
+    <Compile Include="WrldBxStatus.cs" />
     <Compile Include="WrldBxTerraform.cs" />
     <Compile Include="WrldBxTrait.cs" />
     <Compile Include="WrldBxProjectile.cs" />

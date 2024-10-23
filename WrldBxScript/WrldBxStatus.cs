@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.PeerToPeer.Collaboration;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace WrldBxScript
 {
-    public class WrldBxTrait : IWrldBxObject
+    public class WrldBxStatus : IWrldBxObject
     {
         public string id { get; set; }
         public double? health;
@@ -22,11 +23,10 @@ namespace WrldBxScript
         public double? stewardship;
         public string pathIcon;
         public string desc;
-        public List<string> effectName = new List<string>();
-        public double speed;
-        public WrldBxTrait(string id)
+
+        public WrldBxStatus(string id)
         {
-            Console.WriteLine("NEW Trait REGISTERED");
+            Console.WriteLine("NEW Status REGISTERED");
             this.id = id;
             this.pathIcon = "ui/icons/iconBlessing";
             this.desc = "Bruh You Forgot to add add a Description, BAAAAKAAAA!!! ;/";
@@ -34,7 +34,6 @@ namespace WrldBxScript
 
         public void UpdateStats(Token type, object value)
         {
-
             Console.WriteLine("Trait " + id + " updated: " + type.lexeme);
             Console.WriteLine("VALUE: " + value);
             try
@@ -98,20 +97,7 @@ namespace WrldBxScript
                         desc = value.ToString();
                         break;
 
-                    case TokenType.POWER:
-                        if (value is List<object> list)
-                        {
-                            effectName.AddRange(list.Select(item => item.ToString()));
-                        }
-                        else
-                        {
-                            effectName.Add(value.ToString());
-                        }
-                        break;
-
-                    case TokenType.SPEED:
-                        speed = Convert.ToDouble(value.ToString());
-                        break;
+                  ;
 
                     default:
                         throw new CompilerError(type,
@@ -131,8 +117,6 @@ namespace WrldBxScript
                     $" you should be assigning for the variable," +
                     $" you tried {value} is that right?");
             }
-
-
         }
     }
 }

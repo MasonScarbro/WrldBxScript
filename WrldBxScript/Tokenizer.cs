@@ -78,6 +78,8 @@ namespace WrldBxScript
             { "SETFIRE", TokenType.SETFIRE },
             { "SHAKE", TokenType.SHAKE },
             { "TERRAFORM_OPTION", TokenType.TERRAFORMOP },
+            { "DESC", TokenType.DESC },
+            { "DESCRIPTION", TokenType.DESC },
             //NEW_MINORS_HERE
 
 
