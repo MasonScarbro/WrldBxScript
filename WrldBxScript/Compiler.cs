@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Options;
 using System.Threading;
 using Microsoft.Build.Evaluation;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-
+using static WrldBxScript.StringHelpers;
 
 
 
@@ -23,11 +23,23 @@ namespace WrldBxScript
         private int count = 0;
         private StringBuilder src = new StringBuilder();
         private string modname;
-        private Dictionary<string, WrldBxEffect> effects = new Dictionary<string, WrldBxEffect>();
-        private Dictionary<string, WrldBxTrait> traits = new Dictionary<string, WrldBxTrait>();
-        private Dictionary<string, WrldBxProjectile> projectiles = new Dictionary<string, WrldBxProjectile>();
-        private Dictionary<string, WrldBxStatus> statuses = new Dictionary<string, WrldBxStatus>();
-        private Dictionary<string, WrldBxTerraform> terraformOptions = new Dictionary<string, WrldBxTerraform>();
+        
+        private readonly CodeGeneratorFactory codeGeneratorFactory;
+        private readonly Dictionary<string, WrldBxObjectRepository<IWrldBxObject>> repositories;
+        public Compiler()
+        {
+            repositories = new Dictionary<string, WrldBxObjectRepository<IWrldBxObject>>
+            {
+                { "EFFECTS", new WrldBxObjectRepository<IWrldBxObject>(id => new WrldBxEffect(id)) },
+                { "TRAITS", new WrldBxObjectRepository<IWrldBxObject>(id => new WrldBxTrait(id)) },
+                { "PROJECTILES", new WrldBxObjectRepository<IWrldBxObject>(id => new WrldBxProjectile(id)) },
+                { "STATUSES", new WrldBxObjectRepository<IWrldBxObject>(id => new WrldBxStatus(id)) },
+                { "TERRAFORMING", new WrldBxObjectRepository<IWrldBxObject>(id => new WrldBxTerraform(id)) }
+            };
+            codeGeneratorFactory = new CodeGeneratorFactory(repositories);
+        }
+
+        
         public void Compile(List<Stmt> statements)
         {
             try
@@ -50,56 +62,68 @@ namespace WrldBxScript
         private Stmt Execute(Stmt stmt, object name, string type)
         {
 
-            if (stmt is Stmt.Var stmtv)
+            switch (stmt)
             {
-                if (stmtv.type.lexeme.ToUpper().Equals("MODNAME"))
-                {
-                    modname = VerifyModnameType(stmtv);
-
-                }
-                else if (name == null && modname == null)
-                {
-                    throw new CompilerError(stmtv.type, "Error You Should not have a variable outside of a block UNLESS its MODNAME");
-                }
-                else
-                {
-                    UpdateObjectByType(type, name.ToString(), stmtv.type, EvaluateExpr(stmtv.value));
-
-                    
-                }
-
-                //If the type has an object to update, do it
-                
-                
-
-            }
-            if (stmt is Stmt.Starter stmtst)
-            {
-                if (modname == null) modname = "MyDummyMod";
-                src.Append("namespace " + modname + "\n{\n");
-                src.Append("\t\nclass " + ToParaCase(stmtst.type.lexeme) + "\n" + "{");
-
-                foreach (Stmt.Block block in stmtst.body)
-                {
-                    string nameP = VerifyBlockName(block);
-
-                    Execute(block, nameP, stmtst.type.lexeme);
-                    //AddReqCodeToBlock(stmtst.type, nameP);
-                    count++;
-                }
-                CompileToFile(stmtst.type);
-            }
-            if (stmt is Stmt.Block stmtb)
-            {
-
-                foreach (Stmt stat in stmtb.statements)
-                {
-
-                    Execute(stat, name, type);
-                }
+                case Stmt.Var stmtv:
+                    HandleVarStmt(stmtv, name, type);
+                    break;
+                case Stmt.Starter stmtst:
+                    HandleStarterStmt(stmtst);
+                    break;
+                case Stmt.Block stmtb:
+                    HandleBlockStmt(stmtb, name, type);
+                    break;
             }
 
             return null;
+        }
+
+
+        public void HandleVarStmt(Stmt.Var stmtv, object name, string type)
+        {
+            if (stmtv.type.lexeme.ToUpper().Equals("MODNAME"))
+            {
+                modname = VerifyModnameType(stmtv);
+
+            }
+            else if (name == null && modname == null)
+            {
+                throw new CompilerError(stmtv.type, "Error You Should not have a variable outside of a block UNLESS its MODNAME");
+            }
+            else
+            {
+                UpdateObjectByType(type, name.ToString(), stmtv.type, EvaluateExpr(stmtv.value));
+            }
+        }
+
+        public void HandleStarterStmt(Stmt.Starter stmtst)
+        {
+            if (modname == null) modname = "MyDummyMod";
+            src.AppendLine($"namespace {modname}");
+            src.AppendLine("{");
+            src.AppendLine($"\tclass {ToParaCase(stmtst.type.lexeme)}");
+            src.AppendLine("\t{");
+
+            foreach (Stmt.Block block in stmtst.body)
+            {
+                string nameP = VerifyBlockName(block);
+
+                Execute(block, nameP, stmtst.type.lexeme);
+                //AddReqCodeToBlock(stmtst.type, nameP);
+                count++;
+            }
+
+            var generator = codeGeneratorFactory.GetGenerator(stmtst.type.lexeme);
+            generator.GenerateCode(src, modname);
+            CompileToFile(stmtst.type);
+        }
+
+        private void HandleBlockStmt(Stmt.Block stmtb, object name, string type)
+        {
+            foreach (var stat in stmtb.statements)
+            {
+                Execute(stat, name, type);
+            }
         }
 
         private object EvaluateExpr(Expr expr)
@@ -177,39 +201,17 @@ namespace WrldBxScript
         /// <param name="value"></param>
         
 
-        private void UpdateObjects<T>(Dictionary<string, T> dictionary, string id, Token type, object value, Func<string, T> createObject) where T : IWrldBxObject
+        
+        private void UpdateObjectByType(string type, string id, Token token, object value)
         {
-            if (dictionary.ContainsKey(id))
+            if (repositories.TryGetValue(type, out var repository))
             {
-                dictionary[id].UpdateStats(type, value);
+                repository.UpdateObject(id, token, value);
             }
             else
             {
-                dictionary.Add(id, createObject(id));
-                dictionary[id].UpdateStats(type, value);
-            }
-        }
-        private void UpdateObjectByType(string objectType, string id, Token type, object value)
-        {
-            switch (objectType)
-            {
-                case "EFFECTS":
-                    UpdateObjects(effects, id, type, value, newId => new WrldBxEffect(newId));  
-                    break;
-                case "TRAITS":
-                    UpdateObjects(traits, id, type, value, newId => new WrldBxTrait(newId));    
-                    break;
-                case "PROJECTILES":
-                    UpdateObjects(projectiles, id, type, value, newId => new WrldBxProjectile(newId));  
-                    break;
-                case "TERRAFORMING":
-                    UpdateObjects(terraformOptions, id, type, value, newId => new WrldBxTerraform(newId));  
-                    break;
-                case "STATUSES":
-                    UpdateObjects(statuses, id, type, value, newId => new WrldBxStatus(newId));
-                    break;
-                    //NEW_MAJOR_UPDATE_HERE  
-
+                throw new CompilerError(new Token(token.type, type, null, 0),
+                    $"Invalid object type: {type}");
             }
         }
 
@@ -218,206 +220,15 @@ namespace WrldBxScript
 
         #region CodeGenAndCompilation
 
-        private void GenerateCode(Token type)
-        {
-
-            src.Append("\n\tpublic static void init() \n{");
-            switch (type.lexeme)
-            {
-                case "EFFECTS":
-                    foreach (WrldBxEffect effect in effects.Values)
-                    {
-                        AddBlockId(src, effect.id, type.lexeme);
-                        src.Append($"\t\t\nsprite_path = {InQoutes(effect.sprite_path)}," +
-                               $"\t\t\ntime_between_frames = {effect.time_between_frames}," +
-                               $"\t\t\ndraw_light_area = {effect.draw_light_area}," +
-                               $"\t\t\ndraw_light_size = {effect.draw_light_size}," +
-                               $"\t\t\nlimit = {effect.limit},");
-                        AddReqCodeToBlock(src, type, effect.id);
-                    }
-
-                    src.Append("\n\t\t}\n\t}\n}");
-                    break;
-                case "TRAITS":
-                    var funcs = new StringBuilder();
-                    foreach (WrldBxTrait trait in traits.Values)
-                    {
-
-
-                        AddBlockId(src, trait.id, type.lexeme);
-                        AddIfHasValue(src, trait.health, "health", trait.id);
-                        AddIfHasValue(src, trait.damage, "damage", trait.id);
-                        AddIfHasValue(src, trait.critChance, "crit_chance", trait.id);
-                        AddIfHasValue(src, trait.range, "range", trait.id);
-                        AddIfHasValue(src, trait.attackSpeed, "attack_speed", trait.id);
-                        AddIfHasValue(src, trait.dodge, "dodge", trait.id);
-                        AddIfHasValue(src, trait.accuracy, "accuracy", trait.id);
-                        AddIfHasValue(src, trait.scale, "scale", trait.id, true);
-                        AddIfHasValue(src, trait.intelligence, "intelligence", trait.id);
-                        AddIfHasValue(src, trait.warfare, "warfare", trait.id);
-                        AddIfHasValue(src, trait.stewardship, "stewardship", trait.id);
-                        src.AppendLine($"{trait.id}.path_icon = {InQoutes(trait.pathIcon)};");
-                        src.AppendLine($"{trait.id}.action_attack_target = new AttackAction({trait.id});");
-                        src.AppendLine($"{trait.id}.action_special_effect = (WorldAction)Delegate.Combine({trait.id}.action_special_effect, new WorldAction({trait.id}Attack));");
-                        //NOTE: test if this works if you never put any powers ^
-                        AddReqCodeToBlock(src, type, trait.id, $"addTraitToLocalizedLibrary({trait.id}, {InQoutes(trait.desc)});");
-
-                        funcs.Append(BuildTraitPowerFunctions(trait));
-
-                    }
-
-                    src.Append("\n\t}");
-                    src.Append(funcs);
-                    src.Append(Constants.TRAITSEOF);
-                    break;
-                case "STATUSES":
-                    foreach (WrldBxStatus status in statuses.Values)
-                    {
-
-
-                        AddBlockId(src, status.id, type.lexeme);
-                        AddIfHasValue(src, status.health, "health", status.id);
-                        AddIfHasValue(src, status.damage, "damage", status.id);
-                        AddIfHasValue(src, status.critChance, "crit_chance", status.id);
-                        AddIfHasValue(src, status.range, "range", status.id);
-                        AddIfHasValue(src, status.attackSpeed, "attack_speed", status.id);
-                        AddIfHasValue(src, status.dodge, "dodge", status.id);
-                        AddIfHasValue(src, status.accuracy, "accuracy", status.id);
-                        AddIfHasValue(src, status.scale, "scale", status.id, true);
-                        AddIfHasValue(src, status.intelligence, "intelligence", status.id);
-                        AddIfHasValue(src, status.warfare, "warfare", status.id);
-                        AddIfHasValue(src, status.stewardship, "stewardship", status.id);
-                        src.AppendLine($"{status.id}.path_icon = {InQoutes(status.pathIcon)};");
-                        
-                        AddReqCodeToBlock(src, type, status.id);
-
-                        
-
-                    }
-
-                    src.Append("\n\t}");
-                    src.Append(Constants.STATUSESEOF);
-                    break;
-
-                case "PROJECTILES":
-                    foreach (WrldBxProjectile projectile in projectiles.Values)
-                    {
-                        AddBlockId(src, projectile.id, type.lexeme);
-                        if (projectile.texture.Equals("fireball"))
-                        {
-                            WrldBxScript.Warning($"{projectile.id} Does not have an assigned texture, given default texture");
-                        }
-                        if (terraformOptions.ContainsKey(projectile.terraformOption))
-                        {
-                            //When we introduce Globals we may need to change this
-                            throw new CompilerError(type, $"{projectile.terraformOption} Could not be found in your TERRAFORMING block");
-                        }
-                        src.Append($"\t\t\ndraw_light_area = {projectile.draw_light_area}," +
-                               $"\t\t\ndraw_light_size = {projectile.draw_light_size}," +
-                               $"\t\t\ntexture = {InQoutes(projectile.texture)},");
-                        src.Append(projectile.animation_speed.HasValue ? $"\t\t\nanimation_speed = {projectile.animation_speed}" : "");
-                        src.Append($"\t\t\nspeed = {projectile.speed}," +
-                               $"\t\t\nparabolic = {projectile.parabolic}" +
-                               $"\t\t\nlook_at_target = {projectile.lookAtTarget}" +
-                               $"\t\t\nstartScale = {projectile.scale}," +
-                               $"\t\t\ntargetScale = {projectile.scale}," +
-                               $"\t\t\nterraformOption = {projectile.terraformOption},");
-                        src.Append("\t\t\nlooped = true," +
-                               "\t\t\nendEffect = string.Empty," +
-                               $"\t\t\ntexture_shadow = {InQoutes("shadow_ball")}," +
-                               $"\t\t\ntrailEffect_enabled = true," +
-                               $"sound_launch = {InQoutes("event:/SFX/WEAPONS/WeaponFireballStart")},");
-
-
-                        AddReqCodeToBlock(src, type, projectile.id);
-                    }
-                    src.Append("\n\t\t}\n\t}\n}");
-                    break;
-                case "TERRAFORMING":
-                    foreach (WrldBxTerraform terraformOption in terraformOptions.Values)
-                    {
-                        AddBlockId(src, terraformOption.id, type.lexeme);
-                        if (terraformOption.explode_strength.HasValue && terraformOption.explode_tile == false)
-                        {
-                            terraformOption.explode_tile = true;
-                        }
-                        if (!terraformOption.explode_strength.HasValue && terraformOption.explode_tile == true)
-                        {
-                            WrldBxScript.Warning($"You did not set explode_strength it was given a default value of 1");
-                        }
-                        src.Append(
-                            $"flash = {terraformOption.flash}," +
-                            $"explode_tile = {terraformOption.explode_tile}," +
-                            $"applyForce = {terraformOption.applyForce}," +
-                            $"force_power = {terraformOption.force_power}," +
-                            $"explode_strength = {terraformOption.explode_strength}," +
-                            $"damageBuildings = {terraformOption.damageBuildings}," +
-                            $"setFire = {terraformOption.setFire}," +
-                            $"addBurned = {terraformOption.addBurned}," +
-                            $"shake_intensity = 1f," +
-                            $"damage = {terraformOption.damage},"
-
-                            );
-                        AddReqCodeToBlock(src, type, terraformOption.id);
-                    }
-                    src.Append("\n\t\t}\n\t}\n}");
-                    break;
-                //NEW_MAJOR_GEN_HERE
-                default:
-                    throw new InvalidOperationException($"Unrecognized lexeme: {type.lexeme}");
-            }
-            
-            
-            
-        }
-
-        //override
-        //private void GenerateCode(string objType, Stmt.Var current)
-        //{
-        //    if (!src.ToString().Contains("\n\tpublic static void init() \n{"))
-        //    {
-        //        src.Append("\n\tpublic static void init() \n{");
-        //    }
-        //    if (objType.Equals("TERRAFORM"))
-        //    {
-                
-        //        if (current.type.type == TokenType.ID) 
-        //        {
-                    
-        //            AddBlockId(src, EvaluateExpr(current.value), objType); 
-        //        }
-        //        else
-        //        {
-        //            src.AppendLine($"{current.type.lexeme.ToLower()} = {EvaluateExpr(current.value)}");
-        //        }
-        //        FinalizeBlock(objType);
-        //    }
-            
-
-        //}
-
         
-        //// Call this method explicitly after processing all attributes
-        //private void FinalizeBlock(string objType)
-        //{
-            
-        //    if (objType.Equals("TERRAFORM"))
-        //    {
-        //        if (count == 1)  // Ensure block is closed only after all vars
-        //        {
-        //            src.AppendLine("});");
-        //            src.AppendLine($"// Block End {objType}");
-        //            count = 0;
-        //        }
-        //    }
-            
-        //}
+
 
         private void CompileToFile(Token type)
         {
             if (type.lexeme.Equals("TRAITS"))
             {
-                GenerateCode(type);
+                
+
                 File.WriteAllText("C:/Users/Admin/Desktop/fart.cs", src.ToString());
                 FormatCode("C:/Users/Admin/Desktop/fart.cs");
 
@@ -425,18 +236,23 @@ namespace WrldBxScript
             }
             if (type.lexeme.Equals("EFFECTS"))
             {
-                GenerateCode(type);
+                
                 File.WriteAllText("C:/Users/Admin/Desktop/doodoo.cs", src.ToString());
                 FormatCode("C:/Users/Admin/Desktop/doodoo.cs");
             }
-
+            if (type.lexeme.Equals("STATUSES"))
+            {
+                
+                File.WriteAllText("C:/Users/Admin/Desktop/statsus.cs", src.ToString());
+                FormatCode("C:/Users/Admin/Desktop/statsus.cs");
+            }
             if (type.lexeme.Equals("PROJECTILES"))
             {
-                GenerateCode(type);
+                
                 File.WriteAllText("C:/Users/Admin/Desktop/poopoo.cs", src.ToString());
                 FormatCode("C:/Users/Admin/Desktop/poopoo.cs");
             }
-            if (type.lexeme.Equals("TERRAFORM"))
+            if (type.lexeme.Equals("TERRAFORMING"))
             {
                 //src.Append("\n\t\t}\n\t}\n}");
                 File.WriteAllText("C:/Users/Admin/Desktop/terra.cs", src.ToString());
@@ -484,6 +300,7 @@ namespace WrldBxScript
 
         private string VerifyModnameType(Stmt.Var stmtv)
         {
+            
             if (EvaluateExpr(stmtv.value) is string) return ToParaCase(ReplaceWhiteSpace(EvaluateExpr(stmtv.value).ToString()));
             //else
             throw new CompilerError(stmtv.type, "Modname CANNOT be an integer or double It MUST be a string!");
@@ -492,274 +309,9 @@ namespace WrldBxScript
         #endregion
 
 
-        #region StringHelpers
-
-        private string ReplaceWhiteSpace(string str)
-        {
-            try
-            {
-                str.Replace(' ', '_');
-            }
-            catch (Exception)
-            {
-
-            }
-
-            return str;
-        }
-
-        private string InQoutes(string str)
-        {
-            return '"' + str + '"';
-        }
-        private string ToStatString(string nameP, string type)
-        {
-            return "\t\t\n" + ReplaceWhiteSpace(nameP.ToLower()) + ".base_stats[S." + type + "] += ";
-        }
-        private string ToParaCase(string str)
-        {
-            return str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower();
-        }
-
-        #endregion
 
 
-        #region CodeGenHelpers
-        // ####################### TRAIT HELPERS ################################ //
-
-        private string BuildTraitPowerFunctions(WrldBxTrait trait)
-        {
-
-            string powerFuncs = "";
-            string mainAttackFunc =
-                $"public static bool {trait.id}Attack(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile)" +
-                "\n{" +
-                "\n\tif (pTarget != null)" +
-                "\n\t{";
-
-            string mainSpecialFunc =
-                $"public static bool {trait.id}Special(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile)" +
-                "\n{" +
-                "\n\tif (pSelf.a != null)" +
-                "\n\t{";
-
-
-            foreach (string effectKey in trait.effectName)
-            {
-
-                if (effects.TryGetValue(effectKey, out WrldBxEffect effect))
-                {
-
-                    
-                    powerFuncs += $"public static bool {effect.id}(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile)" +
-                                  "\n{" +
-                                  "\n\tif (pTarget != null)" +
-                                  "\n\t{" +
-                                  ApplyCombinations(effect.combinations) +
-                                  SpawnEffectCode(effect) +
-                                  "\n\t\treturn true;" +
-                                  "\n\t}" +
-                                  "\n\t\treturn false;" +
-                                  "\n}";
-                    if (effect.IsAttack)
-                    {
-                        mainAttackFunc +=
-                            $"\n\t\tif (Toolbox.randomChance({effect.chance}))" +
-                            "\n\t\t{" +
-                            $"\n\t\t\t{effect.id}(pSelf, pTarget, pTile);" +
-                            "\n\t\t}";
-
-                    }
-                    else
-                    {
-                        mainSpecialFunc +=
-                            $"\n\t\tif (Toolbox.randomChance({effect.chance}))" +
-                            "\n\t\t{" +
-                            $"\n\t\t\t{effect.id}(pSelf, pTarget, pTile);" +
-                            "\n\t\t}";
-                    }
-                }
-                else if (projectiles.TryGetValue(effectKey, out WrldBxProjectile projectile))
-                {
-                    powerFuncs += $"public static bool {projectile.id}(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile)" +
-                                  "\n{" +
-                                  "\n\tif (pTarget != null)" +
-                                  "\n\t{" + 
-                                  ApplyCombinations(projectile.combinations) +
-                                  SpawnProjectileCode(projectile) +
-                                  "\n\t\treturn true;" +
-                                  "\n\t}" +
-                                  "\n\t\treturn false;" +
-                                  "\n}";
-
-                    mainAttackFunc +=
-                        $"\n\t\tif (Toolbox.randomChance({projectile.chance}))" +
-                        "\n\t\t{" +
-                        $"\n\t\t\t{projectile.id}(pSelf, pTarget, pTile);" +
-                        "\n\t\t}";
-                }
-                else
-                {
-                    WrldBxScript.Warning($"Could not find {effectKey}" +
-                                         $" in your effects/projectiles. FAILED " +
-                                         $"to build power for it");
-
-                }
-
-            }
-
-            mainSpecialFunc += "\n\t\treturn true;" +
-                               "\n\t}" +
-                               "\n\treturn false;" +
-                               "\n}";
-            mainAttackFunc += "\n\t\treturn true;" +
-                              "\n\t}" +
-                              "\n\treturn false;" +
-                              "\n}";
-            return $"{mainSpecialFunc}\n{mainAttackFunc}\n{powerFuncs}";
-
-        }
-
-        private string ApplyCombinations(List<string> combinations)
-        {
-            StringBuilder sb = new StringBuilder();
-            if (combinations != null && combinations.Count != 0)
-            {
-                foreach (string combination in combinations)
-                {
-                    if (effects.TryGetValue(combination, out WrldBxEffect effect))
-                    {
-                        sb.Append(SpawnEffectCode(effect));
-                    }
-                    if (projectiles.TryGetValue(combination, out WrldBxProjectile projectile))
-                    {
-                        sb.Append(SpawnProjectileCode(projectile));
-                    }
-                    else
-                    {
-                        //do noting for now
-                    }
-                }
-
-                return sb.ToString();
-            }
-
-            return "";
-        }
-
-        private string BuildDefaultPowerFunctions()
-        {
-            string powerFunc = "";
-            foreach (WrldBxEffect effect in effects.Values)
-            {
-                powerFunc = $"public static bool {effect.id}{(effect.IsAttack ? "Attack" : "Special")}(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile)";
-                powerFunc += "\n{";
-                powerFunc += "if (pTarget != null)\n{";
-                powerFunc += $"if (Toolbox.randomChance({effect.chance}))" + "\n{";
-                powerFunc += $"EffectsLibrary.spawn({effect.id}, {(effect.spawnsOnTarget ? "pTarget.a.currentTile" : "pSelf.a.currentTile")}, null, null, 0f, -1f, -1f);";
-                powerFunc += "\n}\n}\nreturn true;\n}\nreturn false;\n}";
-            }
-
-            return powerFunc;
-        }
-
-        private void AddIfHasValue<T>(StringBuilder sb, T? value, string statName, string id, bool divideBy100 = false) where T : struct
-        {
-            if (value.HasValue)
-            {
-                string statValue = divideBy100 ? (Convert.ToDouble(value.Value) / 100).ToString() : value.ToString();
-                sb.AppendLine($"{ToStatString(id, statName)}{statValue};");
-            }
-        }
-
-        // ################################################################## //
-
-        // ####################### GENERAL HELPERS ################################ //
-        private void AddReqCodeToBlock(StringBuilder sb, Token type, object name, string appedage = null)
-        {
-            switch (type.lexeme)
-            {
-                case "TRAITS":
-                    sb.Append("\t\t\nAssetManger.traits.add(" + name.ToString() + ");");
-                    sb.Append("\t\t\nPlayerConfig.unlockTrait(" + name.ToString() + ".id);\n");
-                    sb.Append(appedage);
-                    break;
-
-                case "EFFECTS":
-                    sb.Append("\t\t\n});");
-                    sb.Append("World.world.stackEffects.CallMethod(" + "add" + $", {InQoutes(name.ToString())});");
-                    break;
-
-                case "STATUSES":
-                    sb.Append($"localizeStatus({name}.id, {name}.id, {name}.description);");
-                    sb.Append($"AssetManager.status.add({name});");
-                    break;
-
-                case "TERRAFORM":
-                case "PROJECTILES":
-                    sb.Append("\t\t\n});");
-                    break;
-            }
-            
-        }
-
-        private void AddBlockId(StringBuilder sb, object name, string type)
-        {
-            switch (type)
-            {
-                case "TRAITS":
-                    sb.Append($"\t\t\nActorTrait {name} = new ActorTrait();");
-                    sb.Append($"\t\t\n{name}.id = {InQoutes(name.ToString())};");
-                    break;
-
-                case "EFFECTS":
-                    sb.Append($"\t\tvar {name.ToString()} = AssetManager.effects_library.add(new EffectAsset {{");
-                    sb.Append($"\t\t\nid = {InQoutes(name.ToString())}");
-                    break;
-
-                case "STATUSES":
-                    sb.Append($"StatusEffect {name} = new StatusEffect();");
-                    sb.Append($"{name}.id = {InQoutes(name.ToString())};");
-                    break;
-                case "PROJECTILES":
-                    sb.Append($"\t\tvar {name.ToString()} = AssetManager.projectiles.add(new ProjectileAsset {{");
-                    sb.Append($"\t\t\nid = {InQoutes(name.ToString())}");
-                    break;
-
-                case "TERRAFORM":
-                    sb.Append("AssetManager.terraform.add(new TerraformOptions\n\t{");
-                    sb.Append($"\t\t\nid = {InQoutes(name.ToString())},");
-                    break;
-            }
-        }
-
-        private string SpawnProjectileCode(WrldBxProjectile projectile)
-        {
-            return "Vector2Int pos = pTile.pos;" +
-                   "float pDist = Vector2.Distance(pTarget.currentPosition, pos);" +
-                   "Vector3 newPoint = Toolbox.getNewPoint(pSelf.currentPosition.x, pSelf.currentPosition.y, (float)pos.x, (float)pos.y, pDist, true);" +
-                   "Vector3 newPoint2 = Toolbox.getNewPoint(pTarget.currentPosition.x, pTarget.currentPosition.y, (float)pos.x, (float)pos.y, pTarget.a.stats[S.size], true);" +
-                   $"EffectsLibrary.spawnProjectile({InQoutes(projectile.id)}, newPoint, newPoint2, 0.0f);";
-        }
-        private string SpawnEffectCode(WrldBxEffect effect)
-        {
-            return $"EffectsLibrary.spawn({InQoutes(effect.id)}, " +
-                   $"{(effect.spawnsOnTarget ? "pTarget.a.currentTile" : "pSelf.a.currentTile")}, null, null, 0f, -1f, -1f);";
-        }
-        // ################################################################## //
-
-        #endregion
-
-        private bool TryGetCurrentEffect(string id, out WrldBxEffect effect)
-        {
-            if (effects.ContainsKey(id))
-            {
-                effect = effects[id];
-                return true;
-            }
-
-            effect = null;
-            return false;
-        }
+        
+        
     }
 }

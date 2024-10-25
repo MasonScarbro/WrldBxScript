@@ -10,7 +10,7 @@ namespace WrldBxScript
 {
     class WrldBxScript
     {
-        public static readonly Compiler compiler = new Compiler();
+        public static Compiler compiler = new Compiler();
         static bool hadError = false;
         static bool hadRuntimeError = false;
         public static void Main(string[] args)

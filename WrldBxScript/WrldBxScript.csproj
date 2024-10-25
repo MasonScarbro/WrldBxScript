@@ -222,12 +222,21 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="WrldBxObject.cs" />
-    <Compile Include="WrldBxStatus.cs" />
-    <Compile Include="WrldBxTerraform.cs" />
-    <Compile Include="WrldBxTrait.cs" />
-    <Compile Include="WrldBxProjectile.cs" />
-    <Compile Include="WrldBxEffect.cs" />
+    <Compile Include="CodeGeneratorFactory.cs" />
+    <Compile Include="Generators\EffectsCodeGenerator.cs" />
+    <Compile Include="Generators\ICodeGenerator.cs" />
+    <Compile Include="Generators\ProjectilesCodeGenerator.cs" />
+    <Compile Include="Generators\StatusesCodeGenerator.cs" />
+    <Compile Include="StringHelpers.cs" />
+    <Compile Include="Generators\TerraformCodeGenerator.cs" />
+    <Compile Include="Generators\TraitsCodeGenerator.cs" />
+    <Compile Include="Objects\WrldBxObject.cs" />
+    <Compile Include="WrldBxObjectRepository.cs" />
+    <Compile Include="Objects\WrldBxStatus.cs" />
+    <Compile Include="Objects\WrldBxTerraform.cs" />
+    <Compile Include="Objects\WrldBxTrait.cs" />
+    <Compile Include="Objects\WrldBxProjectile.cs" />
+    <Compile Include="Objects\WrldBxEffect.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="CompilerError.cs" />
     <Compile Include="Compiler.cs" />
