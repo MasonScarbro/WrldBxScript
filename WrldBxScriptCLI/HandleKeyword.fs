@@ -197,7 +197,7 @@ let handleCreateKeyword (dev: bool) =
                 objectSrc
 
             let buildCompilerSrc (dict: Dictionary<string, string>) = 
-                let updateObjectsSrc = System.Text.StringBuilder()
+                
                 let generateCodeSrc =  System.Text.StringBuilder()
 
                 let buildEach () =
@@ -208,33 +208,58 @@ let handleCreateKeyword (dev: bool) =
                     )
                     codeGen.ToString()  // Return the generated code
 
-                updateObjectsSrc.Append(
-                    $"""
-                    case {inQoutes (majorName)}:
-                        UpdateObjects(terraformOptions, id, type, value, newId => new WrldBx{getParaCase majorName}(newId));
-                        break;
-                    """
-                ) |> ignore
+                
                 generateCodeSrc.Append (
                     $"""
-                    case {inQoutes (majorName)}:
-                        foreach (WrldBx{getParaCase majorName} {majorName.ToLower()} in {majorName.ToLower()}s.Values)
+                    using System;
+                    using System.Collections.Generic;
+                    using System.Linq;
+                    using System.Text;
+                    using System.Threading.Tasks;
+
+                    namespace WrldBxScript
+                    {{
+                        public  class {getParaCase(majorName)}CodeGenerator : ICodeGenerator
                         {{
-                            AddBlockId(src, {majorName}.id, type.lexeme);
-                            src.Append(
-                            {buildEach()}
-                            );
-                            AddReqCodeToBlock(src, type, {majorName.ToLower()}.id);
+                            private readonly Dictionary<string, WrldBxObjectRepository<IWrldBxObject>> _repositories;
+
+                            // Constructor that accepts repositories
+                            public ProjectilesCodeGenerator(Dictionary<string, WrldBxObjectRepository<IWrldBxObject>> repositories)
+                            {{
+                                _repositories = repositories;
+                            }}
+                            public void GenerateCode(StringBuilder src, string modname)
+                            {{
+                                src.AppendLine("\tpublic static void init() \n\t{{");
+
+                                // Add effects-specific generation logic here
+                                foreach (WrldBxProjectile projectile in _repositories[\"{majorName.ToUpper()}\"].GetAll.Cast<WrldBxProjectile>())
+                                {{
+                                    AddBlockId(src, projectile.id);
+                                }}  
+
+                            public void AddBlockId(StringBuilder src, object name)
+                            {{
+                                
+                            }}
+
+                            public void AddReqCodeToBlock(StringBuilder src, object name, string appendage = null)
+                            {{
+                                
+                            }}
+
+                            
                         }}
-                    """
-                ) |> ignore
-                (updateObjectsSrc.ToString(), generateCodeSrc.ToString())
+                    }}
+                    """) |> ignore
+                (generateCodeSrc.ToString())
 
             // Call the function to build the object source code
             let sourceCode = buildObjectSrc majorName dict
-            let updateObjectsSrc, generateCodeSrc = buildCompilerSrc dict
+            let generateCodeSrc = buildCompilerSrc dict
             
             printfn "Generated Source Code:\n%s" sourceCode
+            writeToCompilerFile (generateCodeSrc) (majorName)
             writeObjectToFile (majorName) (sourceCode)
                 
         

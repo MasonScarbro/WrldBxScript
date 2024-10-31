@@ -10,13 +10,15 @@ namespace WrldBxScript
     {
         private readonly Dictionary<string, ICodeGenerator> generators;
         private readonly Dictionary<string, WrldBxObjectRepository<IWrldBxObject>> _repositories;
-        public CodeGeneratorFactory(Dictionary<string, WrldBxObjectRepository<IWrldBxObject>> repositories)
+        private readonly Dictionary<string, object> _globals;
+        public CodeGeneratorFactory(Dictionary<string, WrldBxObjectRepository<IWrldBxObject>> repositories, Dictionary<string, object> globals)
         {
             _repositories = repositories;
+            _globals = globals;
             generators = new Dictionary<string, ICodeGenerator>
             {
                 { "EFFECTS", new EffectsCodeGenerator(_repositories) },
-                { "TRAITS", new TraitsCodeGenerator(_repositories) },
+                { "TRAITS", new TraitsCodeGenerator(_repositories, _globals) },
                 { "PROJECTILES", new ProjectilesCodeGenerator(_repositories) },
                 { "STATUSES", new StatusesCodeGenerator(_repositories) },
                 { "TERRAFORMING", new TerraformCodeGenerator(_repositories) }

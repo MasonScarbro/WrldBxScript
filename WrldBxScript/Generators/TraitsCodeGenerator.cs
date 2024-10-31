@@ -5,15 +5,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace WrldBxScript
 {
     public class TraitsCodeGenerator : ICodeGenerator
     {
         private readonly Dictionary<string, WrldBxObjectRepository<IWrldBxObject>> _repositories;
-
+        private readonly Dictionary<string, object> _globals;
         // Constructor that accepts repositories
-        public TraitsCodeGenerator(Dictionary<string, WrldBxObjectRepository<IWrldBxObject>> repositories)
+        public TraitsCodeGenerator(Dictionary<string, WrldBxObjectRepository<IWrldBxObject>> repositories, Dictionary<string, object> globals)
         {
+            _globals = globals;
             _repositories = repositories;
         }
         public void GenerateCode(StringBuilder src, string modname)
@@ -151,24 +153,24 @@ namespace WrldBxScript
 
         }
 
-        private string ApplyCombinations(List<string> combinations)
+        private string ApplyCombinations(List<object> combinations)
         {
             StringBuilder sb = new StringBuilder();
             if (combinations != null && combinations.Count != 0)
             {
-                foreach (string combination in combinations)
+                foreach (object combination in combinations)
                 {
-                    if (TryGetEffect(combination, out WrldBxEffect effect))
+                    if (TryGetEffect(combination.ToString(), out WrldBxEffect effect))
                     {
                         sb.Append(SpawnEffectCode(effect));
                     }
-                    if (TryGetProjectile(combination, out WrldBxProjectile projectile))
+                    if (TryGetProjectile(combination.ToString(), out WrldBxProjectile projectile))
                     {
                         sb.Append(SpawnProjectileCode(projectile));
                     }
-                    else
+                    else if (TryGetGlobals(combination, out string relatedSrc))
                     {
-                        //do noting for now
+                        //Check if its a Call with params
                     }
                 }
 
@@ -224,6 +226,24 @@ namespace WrldBxScript
             }
 
             // If not found, return false.
+            return false;
+        }
+
+        private bool TryGetGlobals(object combination, out string src)
+        {
+            src = "";
+            if (combination is ValueTuple<object, List<object>> tuple) // Checking if it's a tuple
+            {
+                var functionName = tuple.Item1;
+                var arguments = tuple.Item2;
+
+                // Process function call with name and args
+                Console.WriteLine($"Function: {functionName}, Arguments: {string.Join(", ", arguments)}");
+            }
+            else
+            {
+                //functionality if its just a identifier (no '()')
+            }
             return false;
         }
         private string ToStatString(string nameP, string type)

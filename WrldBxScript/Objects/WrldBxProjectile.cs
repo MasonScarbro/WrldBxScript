@@ -19,7 +19,7 @@ namespace WrldBxScript
         public double? animation_speed;
         public bool lookAtTarget;
         public string terraformOption;
-        public List<string> combinations;
+        public List<object> combinations;
 
         public WrldBxProjectile(string id)
         {
@@ -81,14 +81,14 @@ namespace WrldBxScript
                         terraformOption = value.ToString();
                         break;
                     case TokenType.COMBINE:
-                        combinations = new List<string>();
+                        combinations = new List<object>();
                         if (value is List<object> list)
                         {
-                            combinations.AddRange(list.Select(item => item.ToString()));
+                            combinations.AddRange(list.Select(item => item));
                         }
                         else
                         {
-                            combinations.Add(value.ToString());
+                            combinations.Add(value);
                         }
                         break;
                     default:

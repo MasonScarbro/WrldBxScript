@@ -1,0 +1,16 @@
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxInstaller\bin\Debug\net8.0-windows\WrldBxInstaller.exe
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxInstaller\bin\Debug\net8.0-windows\WrldBxInstaller.deps.json
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxInstaller\bin\Debug\net8.0-windows\WrldBxInstaller.runtimeconfig.json
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxInstaller\bin\Debug\net8.0-windows\WrldBxInstaller.dll
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxInstaller\bin\Debug\net8.0-windows\WrldBxInstaller.pdb
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxInstaller\obj\Debug\net8.0-windows\WrldBxInstaller.Form1.resources
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxInstaller\obj\Debug\net8.0-windows\WrldBxInstaller.csproj.GenerateResource.cache
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxInstaller\obj\Debug\net8.0-windows\WrldBxInstaller.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxInstaller\obj\Debug\net8.0-windows\WrldBxInstaller.AssemblyInfoInputs.cache
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxInstaller\obj\Debug\net8.0-windows\WrldBxInstaller.AssemblyInfo.cs
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxInstaller\obj\Debug\net8.0-windows\WrldBxInstaller.csproj.CoreCompileInputs.cache
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxInstaller\obj\Debug\net8.0-windows\WrldBxInstaller.dll
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxInstaller\obj\Debug\net8.0-windows\refint\WrldBxInstaller.dll
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxInstaller\obj\Debug\net8.0-windows\WrldBxInstaller.pdb
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxInstaller\obj\Debug\net8.0-windows\WrldBxInstaller.genruntimeconfig.cache
+C:\Users\Admin\source\repos\WrldBxScript\WrldBxInstaller\obj\Debug\net8.0-windows\ref\WrldBxInstaller.dll

@@ -44,6 +44,7 @@ namespace WrldBxInstaller
             txtInstallPath.Name = "txtInstallPath";
             txtInstallPath.Size = new Size(300, 23);
             txtInstallPath.TabIndex = 0;
+            txtInstallPath.Text = "C:\\Program Files\\WrldBx";
             // 
             // btnInstall
             // 
@@ -107,6 +108,7 @@ namespace WrldBxInstaller
         private System.Windows.Forms.Button btnBrowse;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label labelInfo;
+        private System.Windows.Forms.ProgressBar progressBar;
 
         #endregion
     }

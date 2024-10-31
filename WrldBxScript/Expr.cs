@@ -32,6 +32,18 @@ namespace WrldBxScript
 			public readonly Expr expression;
 		}
 
+        public class Call : Expr
+        {
+            public Call(List<Expr> expressions, Expr callee)
+            {
+				this.callee = callee;
+                this.expressions = expressions;
+            }
+
+            public readonly Expr callee;
+            public readonly List<Expr> expressions;
+        }
+
         public class List : Expr
         {
             public List(List<Expr> expressions)

@@ -146,6 +146,8 @@ namespace WrldBxScript
             return Grouping();
         }
 
+
+
         private Expr Grouping()
         {
             if (Match(TokenType.LEFT_PAREN))
@@ -164,7 +166,26 @@ namespace WrldBxScript
 
             }
 
-            return Term();
+            return Call();
+        }
+
+        private Expr Call()
+        {
+            Expr expr = Term();
+            List<Expr> exprs = new List<Expr>();
+            if (Match(TokenType.LEFT_PAREN))
+            {
+
+
+                do
+                {
+                    exprs.Add(Expression());
+                }
+                while (Match(TokenType.COMMA));
+                Consume(TokenType.RIGHT_PAREN, "Expected ')' after grouping");
+                return new Expr.Call(exprs, expr);
+            }
+            return expr;
         }
 
         private Expr Term()
@@ -180,6 +201,10 @@ namespace WrldBxScript
             }
             return expr;
         }
+
+
+        
+
 
         private Expr Primary()
         {

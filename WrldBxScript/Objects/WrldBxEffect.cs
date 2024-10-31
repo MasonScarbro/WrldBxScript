@@ -18,7 +18,7 @@ namespace WrldBxScript
         public bool draw_light_area;
         public double draw_light_size;
         public double limit;
-        public List<string> combinations;
+        public List<object> combinations;
         public WrldBxEffect(string id)
         {
             Console.WriteLine("NEW EFFECT REGISTERED");
@@ -82,14 +82,14 @@ namespace WrldBxScript
                         break;
 
                     case TokenType.COMBINE:
-                        combinations = new List<string>();
+                        combinations = new List<object>();
                         if (value is List<object> list)
                         {
-                            combinations.AddRange(list.Select(item => item.ToString()));
+                            combinations.AddRange(list.Select(item => item));
                         }
                         else
                         {
-                            combinations.Add(value.ToString());
+                            combinations.Add(value);
                         }
                         break;
 

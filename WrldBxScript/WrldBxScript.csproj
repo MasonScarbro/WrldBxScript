@@ -227,6 +227,7 @@
     <Compile Include="Generators\ICodeGenerator.cs" />
     <Compile Include="Generators\ProjectilesCodeGenerator.cs" />
     <Compile Include="Generators\StatusesCodeGenerator.cs" />
+    <Compile Include="Globals\IGlobal.cs" />
     <Compile Include="StringHelpers.cs" />
     <Compile Include="Generators\TerraformCodeGenerator.cs" />
     <Compile Include="Generators\TraitsCodeGenerator.cs" />

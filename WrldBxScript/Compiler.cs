@@ -26,6 +26,11 @@ namespace WrldBxScript
         
         private readonly CodeGeneratorFactory codeGeneratorFactory;
         private readonly Dictionary<string, WrldBxObjectRepository<IWrldBxObject>> repositories;
+
+        private readonly Dictionary<string, object> globals = new Dictionary<string, object>
+        {
+            
+        };
         public Compiler()
         {
             repositories = new Dictionary<string, WrldBxObjectRepository<IWrldBxObject>>
@@ -36,7 +41,7 @@ namespace WrldBxScript
                 { "STATUSES", new WrldBxObjectRepository<IWrldBxObject>(id => new WrldBxStatus(id)) },
                 { "TERRAFORMING", new WrldBxObjectRepository<IWrldBxObject>(id => new WrldBxTerraform(id)) }
             };
-            codeGeneratorFactory = new CodeGeneratorFactory(repositories);
+            codeGeneratorFactory = new CodeGeneratorFactory(repositories, globals);
         }
 
         
@@ -141,6 +146,12 @@ namespace WrldBxScript
                 if (exprL.value is null) return "null";
                 return exprL.value;
 
+            }
+            if (expr is Expr.Call call)
+            {
+                var name = EvaluateExpr(call.callee);
+                var args = call.expressions.Select(EvaluateExpr).ToList();
+                return (name, args);
             }
             if (expr is Expr.Binary exprB)
             {

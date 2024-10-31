@@ -82,14 +82,10 @@ let getParaCase (str: string) =
     str.ToLower().Replace(str.Substring(0, 1), str.Substring(0, 1).ToUpper())
 
 let writeObjectToFile (majorName: string) (src: string)=
-        let filePath = sprintf @"C:\Users\Admin\source\repos\WrldBxScript\WrldBxScript\WrldBx%s.cs" (getParaCase (majorName.ToLower()))
+        let filePath = sprintf @"C:\Users\Admin\source\repos\WrldBxScript\WrldBxScript\Objects\WrldBx%s.cs" (getParaCase (majorName.ToLower()))
         File.WriteAllText(filePath, src)
         
         printfn "File added to project successfully!"
 
-let writeToCompilerFile (updateObjectsSrc: string) (codeGenSrc: string) =
-    let fileContent = 
-        File.ReadAllText(@"C:\Users\Admin\source\repos\WrldBxScript\WrldBxScript\Compiler.cs")
-            .Replace("//NEW_MAJOR_GEN_HERE", codeGenSrc)
-            .Replace("//NEW_MAJOR_UPDATE_HERE", updateObjectsSrc)
-    File.WriteAllText(@"C:\Users\Admin\source\repos\WrldBxScript\WrldBxScript\Compiler.cs", fileContent)
+let writeToCompilerFile (codeGenSrc: string) (majorName: string) =
+    File.WriteAllText(sprintf @"C:\Users\Admin\source\repos\WrldBxScript\WrldBxScript\Generators\%sCodeGenerator.cs" majorName, codeGenSrc)
