@@ -9,6 +9,6 @@ namespace WrldBxScript.Globals
     public interface IGlobal
     {
         string TypeAllowance { get; }
-        object Call(List<object> arguments);
+        string Call(List<object> arguments);
     }
 }

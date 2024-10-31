@@ -1,9 +1,11 @@
 ﻿using Microsoft.Build.Evaluation;
+using Microsoft.Build.Framework.XamlTypes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WrldBxScript.Globals;
 
 
 namespace WrldBxScript
@@ -164,13 +166,13 @@ namespace WrldBxScript
                     {
                         sb.Append(SpawnEffectCode(effect));
                     }
-                    if (TryGetProjectile(combination.ToString(), out WrldBxProjectile projectile))
+                    else if (TryGetProjectile(combination.ToString(), out WrldBxProjectile projectile))
                     {
                         sb.Append(SpawnProjectileCode(projectile));
                     }
                     else if (TryGetGlobals(combination, out string relatedSrc))
                     {
-                        //Check if its a Call with params
+                        sb.Append(relatedSrc);
                     }
                 }
 
@@ -234,15 +236,33 @@ namespace WrldBxScript
             src = "";
             if (combination is ValueTuple<object, List<object>> tuple) // Checking if it's a tuple
             {
-                var functionName = tuple.Item1;
+                string functionName = tuple.Item1.ToString();
                 var arguments = tuple.Item2;
 
                 // Process function call with name and args
                 Console.WriteLine($"Function: {functionName}, Arguments: {string.Join(", ", arguments)}");
+                if (_globals.TryGetValue(functionName, out object global))
+                {
+                    if (global is IGlobal globalObj)
+                    {
+                        src += globalObj.Call(arguments);
+                        return true;
+                    }
+                }
+                //else
+                WrldBxScript.Warning($"Could not find {functionName} In stored Globals It has been skipped");
             }
             else
             {
                 //functionality if its just a identifier (no '()')
+                if (_globals.TryGetValue(combination.ToString(), out object global))
+                {
+                    if (global is string constant)
+                    {
+                        src += constant;
+                        return true;
+                    }
+                }
             }
             return false;
         }

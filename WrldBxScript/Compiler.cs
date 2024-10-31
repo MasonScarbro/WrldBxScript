@@ -13,6 +13,7 @@ using System.Threading;
 using Microsoft.Build.Evaluation;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using static WrldBxScript.StringHelpers;
+using WrldBxScript.Globals;
 
 
 
@@ -23,14 +24,12 @@ namespace WrldBxScript
         private int count = 0;
         private StringBuilder src = new StringBuilder();
         private string modname;
-        
+
         private readonly CodeGeneratorFactory codeGeneratorFactory;
         private readonly Dictionary<string, WrldBxObjectRepository<IWrldBxObject>> repositories;
 
-        private readonly Dictionary<string, object> globals = new Dictionary<string, object>
-        {
-            
-        };
+        private readonly Dictionary<string, object> globals;
+
         public Compiler()
         {
             repositories = new Dictionary<string, WrldBxObjectRepository<IWrldBxObject>>
@@ -41,10 +40,25 @@ namespace WrldBxScript
                 { "STATUSES", new WrldBxObjectRepository<IWrldBxObject>(id => new WrldBxStatus(id)) },
                 { "TERRAFORMING", new WrldBxObjectRepository<IWrldBxObject>(id => new WrldBxTerraform(id)) }
             };
+
+            globals = new Dictionary<string, object>()
+            {
+                { "@slowness", "pTarget.addStatusEffect(\"slowness\");" },
+                { "@poison", "pTarget.addStatusEffect(\"poisoned\");" },
+                { "@teleportSelf", "ActionLibrary.teleportRandom(null, pSelf, null);" },
+                { "@teleportTarget", "ActionLibrary.teleportRandom(null, pSelf, null);" },
+                { "@wizardry", Constants.WIZRARDRY },
+                { "@shakeWorld", "World.world.startShake(0.3f, 0.01f, 2f, true, true);" },
+                { "@addTrait", new AddTrait(repositories) },
+                { "@invincible", new Invincible() },
+                {  "@shield", new Shield() },
+
+            };
+
             codeGeneratorFactory = new CodeGeneratorFactory(repositories, globals);
         }
 
-        
+
         public void Compile(List<Stmt> statements)
         {
             try
@@ -210,9 +224,9 @@ namespace WrldBxScript
         /// <param name="id"></param>
         /// <param name="type"></param>
         /// <param name="value"></param>
-        
 
-        
+
+
         private void UpdateObjectByType(string type, string id, Token token, object value)
         {
             if (repositories.TryGetValue(type, out var repository))
@@ -231,14 +245,14 @@ namespace WrldBxScript
 
         #region CodeGenAndCompilation
 
-        
+
 
 
         private void CompileToFile(Token type)
         {
             if (type.lexeme.Equals("TRAITS"))
             {
-                
+
 
                 File.WriteAllText("C:/Users/Admin/Desktop/fart.cs", src.ToString());
                 FormatCode("C:/Users/Admin/Desktop/fart.cs");
@@ -247,19 +261,19 @@ namespace WrldBxScript
             }
             if (type.lexeme.Equals("EFFECTS"))
             {
-                
+
                 File.WriteAllText("C:/Users/Admin/Desktop/doodoo.cs", src.ToString());
                 FormatCode("C:/Users/Admin/Desktop/doodoo.cs");
             }
             if (type.lexeme.Equals("STATUSES"))
             {
-                
+
                 File.WriteAllText("C:/Users/Admin/Desktop/statsus.cs", src.ToString());
                 FormatCode("C:/Users/Admin/Desktop/statsus.cs");
             }
             if (type.lexeme.Equals("PROJECTILES"))
             {
-                
+
                 File.WriteAllText("C:/Users/Admin/Desktop/poopoo.cs", src.ToString());
                 FormatCode("C:/Users/Admin/Desktop/poopoo.cs");
             }
@@ -311,7 +325,7 @@ namespace WrldBxScript
 
         private string VerifyModnameType(Stmt.Var stmtv)
         {
-            
+
             if (EvaluateExpr(stmtv.value) is string) return ToParaCase(ReplaceWhiteSpace(EvaluateExpr(stmtv.value).ToString()));
             //else
             throw new CompilerError(stmtv.type, "Modname CANNOT be an integer or double It MUST be a string!");
@@ -322,7 +336,7 @@ namespace WrldBxScript
 
 
 
-        
-        
+
+
     }
 }

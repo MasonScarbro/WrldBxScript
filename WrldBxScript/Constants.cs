@@ -28,5 +28,17 @@ namespace WrldBxScript
             localizedText.Add(description, description);
         }
         " + "\n}" + "\n}";
+
+        public const string WIZRARDRY = "@" +
+        "if (Toolbox.randomChance(0.4))" +
+        "\n{" +
+         "\tMapBox.instance.dropManager.spawn(pTile, \"fire\", 5f, -1f);\r\n" +
+         "\tMapBox.instance.dropManager.spawn(pTile, \"acid\", 5f, -1f);" +
+         "\t MapBox.instance.dropManager.spawn(pTile, \"fire\", 5f, -1f);" +
+        "\n}" +
+        "if (Toolbox.randomChance(0.2))" +
+        "\n{" +
+        "\t\tActionLibrary.addFrozenEffectOnTarget(null, pTarget, null);" +
+        "\n}";
     }
 }
