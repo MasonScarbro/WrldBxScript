@@ -89,3 +89,6 @@ let writeObjectToFile (majorName: string) (src: string)=
 
 let writeToCompilerFile (codeGenSrc: string) (majorName: string) =
     File.WriteAllText(sprintf @"C:\Users\Admin\source\repos\WrldBxScript\WrldBxScript\Generators\%sCodeGenerator.cs" majorName, codeGenSrc)
+
+let writeGenSrc (path: string) (src: string) = 
+    File.WriteAllText(path, src)

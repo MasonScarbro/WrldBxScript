@@ -49,7 +49,7 @@ namespace WrldBxScript
                         break;
 
                     case TokenType.PATH:
-                        sprite_path = value.ToString();
+                        sprite_path = value?.ToString() == "null" ? null : value.ToString();
                         break;
                     case TokenType.TIMEBETWEENFRAMES:
                         time_between_frames = double.Parse(value.ToString());

@@ -118,6 +118,14 @@ namespace WrldBxScript
                 case ',': AddToken(TokenType.COMMA); break;
                 case '-': AddToken(TokenType.MINUS); break;
                 case '+': AddToken(TokenType.PLUS); break;
+                case '/':
+                    if (Match('/'))
+                    {
+                        // A comment goes until the end of the line.
+                        while (Peek() != '\n' && !IsAtEnd()) Consume();
+                    }
+                    
+                    break;
                 case ' ':
                 case '\r':
                 case '\t':
@@ -145,7 +153,7 @@ namespace WrldBxScript
 
         private bool IsAlpha(char c)
         {
-            return (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '@');
+            return (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '@' || c == '\\');
         }
 
         private bool IsDigit(char c)
@@ -221,6 +229,15 @@ namespace WrldBxScript
             var result = source.Substring(start, current - start);
             Console.WriteLine("Number:  " + result);
             AddToken(TokenType.NUMBER, Double.Parse(result));
+        }
+
+        private bool Match(char expected)
+        {
+            if (IsAtEnd()) return false;
+            if (source[current] != expected) return false;
+
+            current++; //Increments for the advance so that it will skip checking the same char twice
+            return true;
         }
 
         // The Real Method, If only the type is given then literal is null Which is what AddToken(type) does.

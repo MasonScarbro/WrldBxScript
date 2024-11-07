@@ -5,6 +5,7 @@ open System
 open System.Collections.Generic
 open HandleKeyword
 open HandleUpgrade
+open HandleStart
 let commands = ["--help"; "--exit"; "--version"; "--createkeyword"; "--upgrade"]
 
 let commandExists command = 
@@ -30,6 +31,14 @@ let main args =
                     i <- i + 1 
                 else
                     handleCreateKeyword (false)
+            | "--start" -> 
+                if i + 1 < args.Length && args.[i + 1] = "-f" then
+                    printfn "args: %s" args.[i + 1]
+                    
+                    handleStart (true)
+                    i <- i + 1 
+                else
+                    handleStart (false)
             | "--upgrade" -> handleUpgrade()
             | _ -> printfn "Unknown command: %s" args.[i]
             i <- i + 1

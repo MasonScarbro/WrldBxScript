@@ -22,6 +22,11 @@ namespace WrldBxScript
                 //Console.WriteLine("Calling F# CLI with arguments " + args[0] + " " + args[1]);
                 FsCLI.main(args);
             }
+            if (args.Length == 1 && Directory.Exists(args[0]))
+            {
+                string dirPath = args[0];
+                RunMultipleFiles(dirPath);
+            }
             if (args.Length > 1)
             {
                 Console.WriteLine("Usage: wrldbx [script]");
@@ -104,6 +109,59 @@ namespace WrldBxScript
 
         }
 
+        /// <summary>
+        /// Runs Multiple files, if its a folder, 
+        /// orders files based on convention of having modname in
+        /// main or traits, and then appends them to the src to compile
+        /// </summary>
+        /// <param name="dirPath"></param>
+        private static void RunMultipleFiles(string dirPath)
+        {
+            try
+            {
+                // Get all the .wrldbx files in the directory
+                var files = Directory.GetFiles(dirPath, "*.wrldbx");
+
+                // Combine their content
+                List<string> orderedFiles = new List<string>();
+
+                StringBuilder combinedSource = new StringBuilder();
+
+                
+                
+                
+                foreach (var file in files)
+                {
+                    if (file.EndsWith("Traits.wrldbx", StringComparison.OrdinalIgnoreCase) ||
+                        file.EndsWith("Main.wrldbx", StringComparison.OrdinalIgnoreCase))
+                    {
+                        orderedFiles.Insert(0, file);
+                    }
+                    else
+                    {
+                        orderedFiles.Add(file); // Add the rest in normal order
+                    }
+                }
+
+                foreach (var file in orderedFiles)
+        {
+            byte[] bytes = File.ReadAllBytes(file);
+            string fileContent = Encoding.Default.GetString(bytes);
+            combinedSource.Append(fileContent);
+            combinedSource.Append(Environment.NewLine); // Ensure files are separated by a newline
+        }
+                // Run the combined source code
+                Run(combinedSource.ToString());
+
+                if (hadError) Environment.Exit(65);
+                if (hadRuntimeError) Environment.Exit(70);
+            }
+            catch (IOException ex)
+            {
+                Console.WriteLine("Error reading files: " + ex.Message);
+                Environment.Exit(71);
+            }
+        }
         public static void Error(int line, String message)
         {
             report(line, "", message);

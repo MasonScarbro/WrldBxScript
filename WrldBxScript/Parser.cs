@@ -104,7 +104,8 @@ namespace WrldBxScript
             Expr value = null;
             if (Match(TokenType.COLON))
             {
-                
+                //TODO: handle description spaces maybe peek back and if its description allow spaces
+                // then merge all the literals into one? or maybe just force users to use underscores?
                 value = Expression();
 
             }
@@ -295,7 +296,7 @@ namespace WrldBxScript
                     TokenType.PARABOLIC, TokenType.FACINGTRGT, TokenType.SPEED, TokenType.COMBINE,  
                     TokenType.FLASH, TokenType.ADDBURNED,TokenType.APPLYFORCE,
                     TokenType.EXPLODE_TILE,TokenType.EXPLODE_STRENGTH, TokenType.FORCE_POWER,
-                    TokenType.DAMAGEBUILDINGS,TokenType.SETFIRE,TokenType.SHAKE 
+                    TokenType.DAMAGEBUILDINGS,TokenType.SETFIRE,TokenType.SHAKE, TokenType.DESC
                     //NEW_MINORS_HERE
                 );
         }

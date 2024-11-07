@@ -91,7 +91,7 @@ namespace WrldBxScript
                         break;
 
                     case TokenType.PATH:
-                        pathIcon = value.ToString();
+                        pathIcon = value?.ToString() == "null" ? null : value.ToString();
                         break;
 
                     case TokenType.DESC:

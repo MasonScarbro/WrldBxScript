@@ -51,7 +51,7 @@ namespace WrldBxScript
                         break;
 
                     case TokenType.PATH:
-                        texture = value.ToString();
+                        texture = value?.ToString() == "null" ? null : value.ToString();
                         break;
                     case TokenType.TIMEBETWEENFRAMES:
                         animation_speed = Convert.ToDouble(value.ToString());
