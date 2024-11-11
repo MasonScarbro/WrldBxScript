@@ -8,7 +8,11 @@ namespace WrldBxScript.Globals
 {
     public interface IGlobal
     {
-        string TypeAllowance { get; }
+        void SetType(string type);
+        
+
+        string Type { get; set; }
+        List<string> TypeAllowance { get; }
         string Call(List<object> arguments);
     }
 }

@@ -9,8 +9,9 @@ namespace WrldBxScript.Globals
     public class Invincible : IGlobal
     {
         public Invincible() { }
-        public string TypeAllowance => "Effect";
+        public List<string> TypeAllowance => new List<string> { "Effect" };
 
+        public string Type { get; set; }
         public string Call(List<object> arguments)
         {
             if (arguments.Count != 0)
@@ -34,5 +35,12 @@ namespace WrldBxScript.Globals
             return "";
                   
         }
+
+        public void SetType(string type)
+        {
+            Type = type;
+        }
     }
+
+    
 }

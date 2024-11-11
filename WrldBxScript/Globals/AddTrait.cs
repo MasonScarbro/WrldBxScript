@@ -49,8 +49,13 @@ namespace WrldBxScript.Globals
         public AddTrait(Dictionary<string, WrldBxObjectRepository<IWrldBxObject>> repositories)
         {
             _repositories = repositories;
+            Type = "Effect_Appendage";
         }
-        public string TypeAllowance => "Effects";
+        public List<string> TypeAllowance => new List<string>{"Effects"};
+
+        public string Type { get; set; }
+
+        
 
         public string Call(List<object> arguments)
         {
@@ -79,7 +84,13 @@ namespace WrldBxScript.Globals
                 
             }
             //else blank
+            WrldBxScript.Warning($"We could not find the trait {arguments[0].ToString()} in your traits or an existing game trait");
             return "";
+        }
+
+        public void SetType(string type)
+        {
+            Type = type;
         }
     }
 }

@@ -30,6 +30,7 @@ namespace WrldBxScript
             { "STATUSES", TokenType.STATUSES },
             { "PROJECTILES", TokenType.PROJECTILES},
             { "TERRAFORMING", TokenType.TERRAFORM },
+            { "UNITS", TokenType.UNITS },
             //NEW_MAJORS_HERE
             //Minor:
             { "DAMAGE", TokenType.DAMAGE },
@@ -41,6 +42,8 @@ namespace WrldBxScript
             { "ID", TokenType.ID },
             { "POWERS", TokenType.POWER },
             { "EFFECTNAMES", TokenType.POWER },
+            { "ATTACKS", TokenType.POWER },
+            { "UNIT_TRAITS", TokenType.UNIT_TRAITS },
             { "NAME", TokenType.ID },
             { "EMPTY", TokenType.NIL },
             { "TRUE", TokenType.TRUE },
@@ -80,7 +83,15 @@ namespace WrldBxScript
             { "TERRAFORM_OPTION", TokenType.TERRAFORMOP },
             { "DESC", TokenType.DESC },
             { "DESCRIPTION", TokenType.DESC },
-            //NEW_MINORS_HERE
+            { "TEMPLATE", TokenType.TEMPLATE },
+            { "JOB", TokenType.JOB },
+            { "OCEANCREATURE", TokenType.OCEANCREATURE },
+            { "FLYING", TokenType.FLYING },
+            { "NEEDFOOD", TokenType.NEEDFOOD },
+            { "TAKE_ITEMS", TokenType.TAKE_ITEMS },
+            { "USE_ITEMS", TokenType.USE_ITEMS }
+
+//NEW_MINORS_HERE
 
 
 
@@ -133,6 +144,7 @@ namespace WrldBxScript
                 case '\n':
                     line++;
                     break;
+                case '"': String(); break;
                 default:
                     if (IsDigit(c))
                     {
@@ -153,7 +165,7 @@ namespace WrldBxScript
 
         private bool IsAlpha(char c)
         {
-            return (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '@' || c == '\\');
+            return (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '@');
         }
 
         private bool IsDigit(char c)
@@ -229,6 +241,29 @@ namespace WrldBxScript
             var result = source.Substring(start, current - start);
             Console.WriteLine("Number:  " + result);
             AddToken(TokenType.NUMBER, Double.Parse(result));
+        }
+
+        private void String()
+        {
+            while (Peek() != '"' && !IsAtEnd())
+            {
+                if (Peek() == '\n') line++; //handles multiline strings 
+                Consume();
+            }
+
+            if (IsAtEnd())
+            {
+                WrldBxScript.Error(line, "Unterminated String");
+                return;
+            }
+
+            //The Closing "
+            Consume();
+            
+            string value = source.Substring(start + 1, current - start - 2);
+            
+            value = value.Replace("\\", "/");
+            AddToken(TokenType.STRING, value);
         }
 
         private bool Match(char expected)

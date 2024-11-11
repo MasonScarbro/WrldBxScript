@@ -25,7 +25,7 @@ namespace WrldBxScript
             foreach (WrldBxEffect effect in _repositories["EFFECTS"].GetAll.Cast<WrldBxEffect>())
             {
                 AddBlockId(src, effect.id);
-                src.AppendLine($"\t\tsprite_path = {InQuotes(effect.sprite_path)},");
+                src.AppendLine(HandlePath(effect, "Sprite"));
                 src.AppendLine($"\t\ttime_between_frames = {effect.time_between_frames},");
                 src.AppendLine($"\t\tdraw_light_area = {effect.draw_light_area},");
                 src.AppendLine($"\t\tdraw_light_size = {effect.draw_light_size},");
@@ -50,5 +50,61 @@ namespace WrldBxScript
         }
 
         private string InQuotes(string str) => $"\"{str}\"";
+
+        private string HandlePath(WrldBxEffect effect, string type)
+        {
+            
+            if (type.Equals("Sprite"))
+            {
+                if (!System.IO.Directory.Exists(effect.sprite_path.ToString()))
+                {
+                    //give dummy path later 
+                    WrldBxScript.Warning("Path was not found using default");
+                    return $"texture_path = \"NakedMan\",";
+
+                }
+                string spriteFolderName = System.IO.Path.GetFileName(effect.sprite_path.ToString());
+                //For now its a dummy location for the desktop, later we will need to get the workdir
+                string targetLocation = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                                         "FakeMod", "main", "GameResources", "effects");
+
+                if (System.IO.Directory.Exists(targetLocation))
+                {
+                    return $"texture_path = \"effects/{spriteFolderName}\",";
+                }
+
+                //else
+                try
+                {
+                    CopyDirectory(effect.sprite_path.ToString(), targetLocation);
+                    return $"texture_path = \"effects/{spriteFolderName}\",";
+                }
+                catch (Exception ex)
+                {
+
+                    //TODO: For Error like warning we need to make a debug log that the user can check
+                    WrldBxScript.Warning($"There was an error moving the files, with path: {effect.sprite_path}, using default path");
+                    return $"texture_path = \"effects/{effect.sprite_path}\",";
+                }
+            }
+            //else
+            return "";
+
+        }
+        private void CopyDirectory(string sourceDir, string targetDir)
+        {
+            System.IO.Directory.CreateDirectory(targetDir);
+            var files = System.IO.Directory.GetFiles(sourceDir, "*.*", System.IO.SearchOption.TopDirectoryOnly);
+
+               
+            foreach (var file in files)
+            {
+                string targetFilePath = System.IO.Path.Combine(targetDir, System.IO.Path.GetFileName(file));
+                System.IO.File.Copy(file, targetFilePath, true);
+            }
+          
+
+        }
+
     }
 }

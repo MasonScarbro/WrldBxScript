@@ -15,7 +15,8 @@ namespace WrldBxScript
 
         private Dictionary<TokenType, int> StarterPrecedence = new Dictionary<TokenType, int>
         {
-            { TokenType.TRAITS, 100 }, //hundo cus it needa stay last man
+            { TokenType.TRAITS, 10 }, //hundo cus it needa stay last man
+            { TokenType.UNITS, 11 }, // Units can go after traits, it relies on traits
             { TokenType.EFFECTS, 2},
             { TokenType.PROJECTILES, 2},
             { TokenType.TERRAFORM, 3 },
@@ -220,7 +221,7 @@ namespace WrldBxScript
             }
             if (Match(TokenType.STRING))
             {
-                return new Expr.Literal(Previous().lexeme);
+                return new Expr.Literal(Previous().literal);
             }
 
             throw new ParseError();
@@ -296,7 +297,9 @@ namespace WrldBxScript
                     TokenType.PARABOLIC, TokenType.FACINGTRGT, TokenType.SPEED, TokenType.COMBINE,  
                     TokenType.FLASH, TokenType.ADDBURNED,TokenType.APPLYFORCE,
                     TokenType.EXPLODE_TILE,TokenType.EXPLODE_STRENGTH, TokenType.FORCE_POWER,
-                    TokenType.DAMAGEBUILDINGS,TokenType.SETFIRE,TokenType.SHAKE, TokenType.DESC
+                    TokenType.DAMAGEBUILDINGS,TokenType.SETFIRE,TokenType.SHAKE, TokenType.DESC,
+                    TokenType.TEMPLATE,TokenType.JOB,TokenType.OCEANCREATURE,TokenType.FLYING,
+                    TokenType.NEEDFOOD,TokenType.TAKE_ITEMS,TokenType.USE_ITEMS, TokenType.UNIT_TRAITS
                     //NEW_MINORS_HERE
                 );
         }
@@ -305,7 +308,7 @@ namespace WrldBxScript
         {
             return Match
             (
-                TokenType.TRAITS, TokenType.EFFECTS, TokenType.STATUSES, TokenType.PROJECTILES , TokenType.TERRAFORM //NEW_MAJOR_HERE
+                TokenType.TRAITS, TokenType.EFFECTS, TokenType.STATUSES, TokenType.PROJECTILES , TokenType.TERRAFORM , TokenType.UNITS //NEW_MAJOR_HERE
                 
             );
         }

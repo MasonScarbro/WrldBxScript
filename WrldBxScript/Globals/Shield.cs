@@ -9,11 +9,15 @@ namespace WrldBxScript.Globals
     public class Shield : IGlobal
     {
         public Shield() { }
-        public string TypeAllowance => "Effects";
+
+
+        public string Type { get; set; }
+
+        List<string> IGlobal.TypeAllowance => new List<string> { "Effects" };
 
         public string Call(List<object> arguments)
         {
-            if (arguments.Count != 0)
+            if (arguments.Count == 1)
             {
                 if (arguments[0] != null)
                 {
@@ -30,7 +34,7 @@ namespace WrldBxScript.Globals
                     }
                 }
             }
-            else if (arguments.Count > 1)
+            if (arguments.Count > 1)
             {
                 if (arguments[0] != null && arguments[1] != null)
                 {
@@ -49,6 +53,11 @@ namespace WrldBxScript.Globals
             }
             //else blank
             return "";
+        }
+
+        public void SetType(string type)
+        {
+            Type = type;
         }
     }
 }

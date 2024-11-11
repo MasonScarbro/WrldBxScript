@@ -38,7 +38,8 @@ namespace WrldBxScript
                 { "TRAITS", new WrldBxObjectRepository<IWrldBxObject>(id => new WrldBxTrait(id)) },
                 { "PROJECTILES", new WrldBxObjectRepository<IWrldBxObject>(id => new WrldBxProjectile(id)) },
                 { "STATUSES", new WrldBxObjectRepository<IWrldBxObject>(id => new WrldBxStatus(id)) },
-                { "TERRAFORMING", new WrldBxObjectRepository<IWrldBxObject>(id => new WrldBxTerraform(id)) }
+                { "TERRAFORMING", new WrldBxObjectRepository<IWrldBxObject>(id => new WrldBxTerraform(id)) },
+                { "UNITS", new WrldBxObjectRepository<IWrldBxObject>(id => new WrldBxunit(id)) }
             };
 
             globals = new Dictionary<string, object>()
@@ -51,7 +52,8 @@ namespace WrldBxScript
                 { "@shakeWorld", "World.world.startShake(0.3f, 0.01f, 2f, true, true);" },
                 { "@addTrait", new AddTrait(repositories) },
                 { "@invincible", new Invincible() },
-                {  "@shield", new Shield() },
+                { "@shield", new Shield() },
+                { "@damageworld", new DamageWorld() },
 
             };
 
@@ -282,6 +284,12 @@ namespace WrldBxScript
                 //src.Append("\n\t\t}\n\t}\n}");
                 File.WriteAllText("C:/Users/Admin/Desktop/terra.cs", src.ToString());
                 FormatCode("C:/Users/Admin/Desktop/terra.cs");
+            }
+            if (type.lexeme.Equals("UNITS"))
+            {
+                //src.Append("\n\t\t}\n\t}\n}");
+                File.WriteAllText("C:/Users/Admin/Desktop/tempUnits.cs", src.ToString());
+                FormatCode("C:/Users/Admin/Desktop/tempUnits.cs");
             }
             src.Clear(); //reset src for next starter
             count = 0;

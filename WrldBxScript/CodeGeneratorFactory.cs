@@ -21,7 +21,8 @@ namespace WrldBxScript
                 { "TRAITS", new TraitsCodeGenerator(_repositories, _globals) },
                 { "PROJECTILES", new ProjectilesCodeGenerator(_repositories) },
                 { "STATUSES", new StatusesCodeGenerator(_repositories) },
-                { "TERRAFORMING", new TerraformCodeGenerator(_repositories) }
+                { "TERRAFORMING", new TerraformCodeGenerator(_repositories) },
+                { "UNITS", new UnitsCodeGenerator(_repositories) }
             };
             
             

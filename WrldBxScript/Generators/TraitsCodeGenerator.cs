@@ -40,7 +40,7 @@ namespace WrldBxScript
                 AddIfHasValue(src, trait.intelligence, "intelligence", trait.id);
                 AddIfHasValue(src, trait.warfare, "warfare", trait.id);
                 AddIfHasValue(src, trait.stewardship, "stewardship", trait.id);
-                src.AppendLine($"{trait.id}.path_icon = {InQuotes(trait.pathIcon)};");
+                src.AppendLine(HandlePath(trait, "Icon"));
                 if (trait.effectName != null)
                 {
                     src.AppendLine($"{trait.id}.action_attack_target = new AttackAction({trait.id});");
@@ -309,6 +309,51 @@ namespace WrldBxScript
             src.Append("\t\t\nPlayerConfig.unlockTrait(" + name.ToString() + ".id);\n");
             src.Append(appendage);
         }
+
+        private string HandlePath(WrldBxTrait trait, string type)
+        {
+            if (type.Equals("Icon"))
+            {
+                if (!System.IO.File.Exists(trait.pathIcon.ToString()))
+                {
+                    //give dummy path later 
+                    WrldBxScript.Warning("Path was not found using default");
+                    return $"{trait.id}.path_icon = \"ui/icons/iconBlessing\";";
+                }
+
+                //For now its a dummy location for the desktop, later we will need to get the workdir
+                string targetLocation = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                                         "FakeMod", "main", "GameResources", "ui", "icons");
+
+                System.IO.Directory.CreateDirectory(targetLocation);
+
+                string targetPath = System.IO.Path.Combine(targetLocation, System.IO.Path.GetFileName(trait.pathIcon.ToString()));
+
+                if (System.IO.File.Exists(targetPath))
+                {
+                    return $"{trait.id}.path_icon = \"{trait.pathIcon}\";";
+                }
+                //else
+                try
+                {
+                    string fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(trait.pathIcon.ToString());
+                    System.IO.File.Move(trait.pathIcon.ToString(), targetPath);
+                    return $"{trait.id}.path_icon = \"ui/icons/{fileNameWithoutExtension}\";";
+                }
+                catch (Exception ex)
+                {
+
+                    //TODO: For Error like warning we need to make a debug log that the user can check
+                    WrldBxScript.Warning($"There was an error moving the files, with path: {trait.pathIcon}, using default path");
+                    return $"{trait.id}.path_icon = \"{trait.pathIcon}\";";
+                }
+            }
+            
+            //else
+            return "";
+
+        }
+        
 
         private string InQuotes(string str) => $"\"{str}\"";
     }

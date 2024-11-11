@@ -1,4 +1,6 @@
 
+using System;
+
 namespace WrldBxScript
 {
     public class WrldBxTerraform : IWrldBxObject
@@ -35,39 +37,54 @@ namespace WrldBxScript
 
         public void UpdateStats(Token type, object value)
         {
-            
-            switch (type.type)
+            try
             {
+                switch (type.type)
+                {
 
-                case TokenType.ADDBURNED:
-                    addBurned = bool.Parse(value.ToString());
-                    break;
-                case TokenType.APPLYFORCE:
-                    applyForce = bool.Parse(value.ToString());
-                    break;
-                case TokenType.EXPLODE_TILE:
-                    explode_tile = bool.Parse(value.ToString());
-                    break;
-                case TokenType.EXPLODE_STRENGTH:
-                    explode_strength = double.Parse(value.ToString());
-                    break;
-                case TokenType.DAMAGEBUILDINGS:
-                    damageBuildings = bool.Parse(value.ToString());
-                    break;
-                case TokenType.SETFIRE:
-                    setFire = bool.Parse(value.ToString());
-                    break;
-                case TokenType.SHAKE:
-                    shake = bool.Parse(value.ToString());
-                    break;
-                case TokenType.DAMAGE:
-                    damage = float.Parse(value.ToString()); 
-                    break;
-                default:
-                    throw new CompilerError(type,
-                        $"The Keyword {type.lexeme} does not exist within the block");
+                    case TokenType.ADDBURNED:
+                        addBurned = bool.Parse(value.ToString());
+                        break;
+                    case TokenType.APPLYFORCE:
+                        applyForce = bool.Parse(value.ToString());
+                        break;
+                    case TokenType.EXPLODE_TILE:
+                        explode_tile = bool.Parse(value.ToString());
+                        break;
+                    case TokenType.EXPLODE_STRENGTH:
+                        explode_strength = double.Parse(value.ToString());
+                        break;
+                    case TokenType.DAMAGEBUILDINGS:
+                        damageBuildings = bool.Parse(value.ToString());
+                        break;
+                    case TokenType.SETFIRE:
+                        setFire = bool.Parse(value.ToString());
+                        break;
+                    case TokenType.SHAKE:
+                        shake = bool.Parse(value.ToString());
+                        break;
+                    case TokenType.DAMAGE:
+                        damage = float.Parse(value.ToString());
+                        break;
+                    default:
+                        throw new CompilerError(type,
+                            $"The Keyword {type.lexeme} does not exist within the block");
 
+                }
             }
+            catch (CompilerError)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new CompilerError(type,
+                    $"Tried and failed to convert Value for {type.lexeme} " +
+                    $" check what type of value" +
+                    $" you should be assigning for the variable," +
+                    $" you tried {value} is that right?");
+            }
+            
         }
     }
 }

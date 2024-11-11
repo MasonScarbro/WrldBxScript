@@ -35,7 +35,7 @@ namespace WrldBxScript
                 }
                 src.Append($"\t\t\ndraw_light_area = {projectile.draw_light_area}," +
                        $"\t\t\ndraw_light_size = {projectile.draw_light_size}," +
-                       $"\t\t\ntexture = {InQuotes(projectile.texture)},");
+                       HandlePath(projectile, "Sprite"));
                 src.Append(projectile.animation_speed.HasValue ? $"\t\t\nanimation_speed = {projectile.animation_speed}" : "");
                 src.Append($"\t\t\nspeed = {projectile.speed}," +
                        $"\t\t\nparabolic = {StringHelpers.ConvertBoolString(projectile.parabolic)}" +
@@ -66,6 +66,61 @@ namespace WrldBxScript
         {
             src.AppendLine("\t\t});");
             src.AppendLine($"World.world.stackEffects.CallMethod(add, {InQuotes(name.ToString())});");
+        }
+
+        private string HandlePath(WrldBxProjectile projectile, string type)
+        {
+
+            if (type.Equals("Sprite"))
+            {
+                if (!System.IO.Directory.Exists(projectile.texture.ToString()))
+                {
+                    //give dummy path later 
+                    WrldBxScript.Warning("Path was not found using default");
+                    return $"texture = \"NakedMan\",";
+
+                }
+                string spriteFolderName = System.IO.Path.GetFileName(projectile.texture.ToString());
+                //For now its a dummy location for the desktop, later we will need to get the workdir
+                string targetLocation = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                                         "FakeMod", "main", "GameResources", "effects", "projectiles");
+
+                if (System.IO.Directory.Exists(targetLocation))
+                {
+                    return $"texture = \"effects/{spriteFolderName}\",";
+                }
+
+                //else
+                try
+                {
+                    CopyDirectory(projectile.texture.ToString(), targetLocation);
+                    return $"texture = \"{spriteFolderName}\",";
+                }
+                catch (Exception ex)
+                {
+
+                    //TODO: For Error like warning we need to make a debug log that the user can check
+                    WrldBxScript.Warning($"There was an error moving the files, with path: {projectile.texture}, using default path");
+                    return $"texture = \"{projectile.texture}\",";
+                }
+            }
+            //else
+            return "";
+
+        }
+        private void CopyDirectory(string sourceDir, string targetDir)
+        {
+            System.IO.Directory.CreateDirectory(targetDir);
+            var files = System.IO.Directory.GetFiles(sourceDir, "*.*", System.IO.SearchOption.TopDirectoryOnly);
+
+
+            foreach (var file in files)
+            {
+                string targetFilePath = System.IO.Path.Combine(targetDir, System.IO.Path.GetFileName(file));
+                System.IO.File.Copy(file, targetFilePath, true);
+            }
+
+
         }
 
         private string InQuotes(string str) => $"\"{str}\"";
