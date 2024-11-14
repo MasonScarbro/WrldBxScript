@@ -54,6 +54,7 @@ namespace WrldBxScript
                 { "@invincible", new Invincible() },
                 { "@shield", new Shield() },
                 { "@damageworld", new DamageWorld() },
+                { "@CustomCSharp", new CsharpCustom() },
 
             };
 

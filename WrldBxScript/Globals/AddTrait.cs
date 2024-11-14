@@ -51,7 +51,7 @@ namespace WrldBxScript.Globals
             _repositories = repositories;
             Type = "Effect_Appendage";
         }
-        public List<string> TypeAllowance => new List<string>{"Effects"};
+        public List<string> TypeAllowance => new List<string>{"Effects", "Units"};
 
         public string Type { get; set; }
 
@@ -68,6 +68,12 @@ namespace WrldBxScript.Globals
                         if (uniqueAttributes.Contains(arguments[0].ToString()) ||
                             _repositories["TRAITS"].Exists(arguments[0].ToString()))
                         {
+                            if (Type.Equals("Unit_Appendage"))
+                            {
+
+
+                                return $"AssetManager.actor_library.CallMethod(\"addTrait\", \"{arguments[0].ToString()}\");";
+                            }
                             var target = arguments.Count > 1 && arguments[1]?.ToString() == "self" ? "pSelf" : "pTarget";
                             return $"{target}.a.addTrait({arguments[0].ToString()})";
                             

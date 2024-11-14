@@ -44,6 +44,7 @@ namespace WrldBxScript
             { "EFFECTNAMES", TokenType.POWER },
             { "ATTACKS", TokenType.POWER },
             { "UNIT_TRAITS", TokenType.UNIT_TRAITS },
+            { "UNIT_APPENDAGES", TokenType.UNIT_TRAITS },
             { "NAME", TokenType.ID },
             { "EMPTY", TokenType.NIL },
             { "TRUE", TokenType.TRUE },

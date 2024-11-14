@@ -8,7 +8,10 @@ namespace WrldBxScript.Globals
 {
     public class Shield : IGlobal
     {
-        public Shield() { }
+        public Shield() 
+        {
+            Type = "Effect_Appendage";
+        }
 
 
         public string Type { get; set; }
@@ -23,6 +26,7 @@ namespace WrldBxScript.Globals
                 {
                     try
                     {
+                        //if (Type.Equals("Unit_Appendage")) return 
                         return $"pSelf.addStatusEffect(\"shield\", {Convert.ToDouble(arguments[0])}f);";
                     }
                     catch (InvalidCastException e)
@@ -36,6 +40,7 @@ namespace WrldBxScript.Globals
             }
             if (arguments.Count > 1)
             {
+                
                 if (arguments[0] != null && arguments[1] != null)
                 {
                     try

@@ -229,6 +229,7 @@
     <Compile Include="Generators\StatusesCodeGenerator.cs" />
     <Compile Include="Generators\UnitsCodeGenerator.cs" />
     <Compile Include="Globals\AddTrait.cs" />
+    <Compile Include="Globals\CsharpCustom.cs" />
     <Compile Include="Globals\DamageWorld.cs" />
     <Compile Include="Globals\IGlobal.cs" />
     <Compile Include="Globals\Invincible.cs" />

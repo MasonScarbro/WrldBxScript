@@ -7,17 +7,19 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WrldBxScript.Globals;
 
 namespace WrldBxScript
 {
     public class UnitsCodeGenerator : ICodeGenerator
     {
         private readonly Dictionary<string, WrldBxObjectRepository<IWrldBxObject>> _repositories;
-
+        private readonly Dictionary<string, object> _globals;
         // Constructor that accepts repositories
-        public UnitsCodeGenerator(Dictionary<string, WrldBxObjectRepository<IWrldBxObject>> repositories)
+        public UnitsCodeGenerator(Dictionary<string, WrldBxObjectRepository<IWrldBxObject>> repositories, Dictionary<string, object> globals)
         {
             _repositories = repositories;
+            _globals = globals;
         }
 
         public void AddBlockId(StringBuilder src, object name)
@@ -96,7 +98,7 @@ namespace WrldBxScript
                     $"{unit.id}.damagedByOcean = false;\n" +
                     $"{unit.id}.damagedByRain = false;"
                     );
-                AddReqCodeToBlock(src, unit.id);
+                AddReqCodeToBlock(src, unit.id, HandleUnitTraits(unit.unit_traits));
                 src.Append("}\n}");
 
             }
@@ -106,6 +108,75 @@ namespace WrldBxScript
         private string ToStatString(string nameP, string type)
         {
             return "\t\t\n" + StringHelpers.ReplaceWhiteSpace(nameP.ToLower()) + ".base_stats[S." + type + "] += ";
+        }
+
+
+        private string HandleUnitTraits(List<object> unit_traits)
+        {
+            StringBuilder sb = new StringBuilder();
+            if (unit_traits != null && unit_traits.Count != 0)
+            {
+                foreach (object trait in unit_traits)
+                {
+                    
+                    if (TryGetGlobals(trait, out string relatedSrc))
+                    {
+                        sb.Append(relatedSrc);
+                    }
+                    else if (IsUniqueTraits(trait.ToString()))
+                    {
+                        sb.Append($"AssetManager.actor_library.CallMethod(\"addTrait\", \"{trait}\");");
+                        
+                    }
+                }
+
+                return sb.ToString();
+            }
+
+            return "";
+        }
+
+        private bool TryGetGlobals(object trait, out string src)
+        {
+            src = "";
+            if (trait is ValueTuple<object, List<object>> tuple) // Checking if it's a tuple
+            {
+                string functionName = tuple.Item1.ToString();
+                var arguments = tuple.Item2;
+
+                // Process function call with name and args
+                Console.WriteLine($"Function: {functionName}, Arguments: {string.Join(", ", arguments)}");
+                if (_globals.TryGetValue(functionName, out object global))
+                {
+                    if (global is IGlobal globalObj)
+                    {
+                        //if the global does not allow this type report and fail
+                        if (!globalObj.TypeAllowance.Contains("Units"))
+                        {
+                            WrldBxScript.Warning($"The Global Variable {functionName} cannot be used for UNITS, we skipped that function call");
+                            return false;
+                        }
+                        globalObj.SetType("Unit_Appedage");
+                        src += globalObj.Call(arguments);
+                        return true;
+                    }
+                }
+                //else
+                WrldBxScript.Warning($"Could not find {functionName} In stored Globals It has been skipped");
+            }
+            else
+            {
+                //functionality if its just a identifier (no '()')
+                if (_globals.TryGetValue(trait.ToString(), out object global))
+                {
+                    if (global is string constant)
+                    {
+                        src += constant;
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         private string HandlePath(WrldBxunit unit, string type)
@@ -231,6 +302,45 @@ namespace WrldBxScript
                 }
             }
 
+        }
+
+        private bool IsUniqueTraits(string check)
+        {
+            return new List<string>
+            {
+                "evil",
+                "poison_immune",
+                "fire_proof",
+                "acid_proof",
+                "burning_feet",
+                "shiny",
+                "fire_blood",
+                "immortal",
+                "regeneration",
+                "blessed",
+                "agile",
+                "weightless",
+                "fast",
+                "energized",
+                "light_lamp",
+                "genius",
+                "freeze_proof",
+                "tough",
+                "strong_minded",
+                "wise",
+                "bloodlust",
+                "cold_aura",
+                "nightchild",
+                "moonchild",
+                "giant",
+                "strong",
+                "fat",
+                "ambitious",
+                "pyromaniac",
+                "veteran",
+                "acid_touch",
+                "acid_blood"
+            }.Contains(check);
         }
     }
 

@@ -22,7 +22,7 @@ namespace WrldBxScript
                 { "PROJECTILES", new ProjectilesCodeGenerator(_repositories) },
                 { "STATUSES", new StatusesCodeGenerator(_repositories) },
                 { "TERRAFORMING", new TerraformCodeGenerator(_repositories) },
-                { "UNITS", new UnitsCodeGenerator(_repositories) }
+                { "UNITS", new UnitsCodeGenerator(_repositories, _globals) }
             };
             
             
