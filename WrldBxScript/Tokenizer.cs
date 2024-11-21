@@ -31,6 +31,7 @@ namespace WrldBxScript
             { "PROJECTILES", TokenType.PROJECTILES},
             { "TERRAFORMING", TokenType.TERRAFORM },
             { "UNITS", TokenType.UNITS },
+            { "KINGDOMS", TokenType.KINGDOMS },
             //NEW_MAJORS_HERE
             //Minor:
             { "DAMAGE", TokenType.DAMAGE },
@@ -90,7 +91,10 @@ namespace WrldBxScript
             { "FLYING", TokenType.FLYING },
             { "NEEDFOOD", TokenType.NEEDFOOD },
             { "TAKE_ITEMS", TokenType.TAKE_ITEMS },
-            { "USE_ITEMS", TokenType.USE_ITEMS }
+            { "USE_ITEMS", TokenType.USE_ITEMS },
+            { "IS_MOB", TokenType.IS_MOB },
+            { "FRIENDLIES", TokenType.FRIENDLY },
+            { "ENEMIES", TokenType.ENEMY },
 
 //NEW_MINORS_HERE
 

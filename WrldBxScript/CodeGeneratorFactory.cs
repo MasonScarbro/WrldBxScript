@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WrldBxScript.Generators;
 
 namespace WrldBxScript
 {
@@ -22,7 +23,8 @@ namespace WrldBxScript
                 { "PROJECTILES", new ProjectilesCodeGenerator(_repositories) },
                 { "STATUSES", new StatusesCodeGenerator(_repositories) },
                 { "TERRAFORMING", new TerraformCodeGenerator(_repositories) },
-                { "UNITS", new UnitsCodeGenerator(_repositories, _globals) }
+                { "UNITS", new UnitsCodeGenerator(_repositories, _globals) },
+                { "KINGDOMS", new KingdomCodeGenerator(_repositories) },
             };
             
             

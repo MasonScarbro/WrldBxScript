@@ -221,7 +221,7 @@ namespace WrldBxScript
             }
             if (Match(TokenType.STRING))
             {
-                return new Expr.Literal(Previous().literal);
+                return new Expr.Literal(Previous().lexeme);
             }
 
             throw new ParseError();
@@ -299,7 +299,8 @@ namespace WrldBxScript
                     TokenType.EXPLODE_TILE,TokenType.EXPLODE_STRENGTH, TokenType.FORCE_POWER,
                     TokenType.DAMAGEBUILDINGS,TokenType.SETFIRE,TokenType.SHAKE, TokenType.DESC,
                     TokenType.TEMPLATE,TokenType.JOB,TokenType.OCEANCREATURE,TokenType.FLYING,
-                    TokenType.NEEDFOOD,TokenType.TAKE_ITEMS,TokenType.USE_ITEMS, TokenType.UNIT_TRAITS
+                    TokenType.NEEDFOOD,TokenType.TAKE_ITEMS,TokenType.USE_ITEMS, TokenType.UNIT_TRAITS,
+                    TokenType.IS_MOB, TokenType.FRIENDLY, TokenType.ENEMY
                     //NEW_MINORS_HERE
                 );
         }
@@ -308,7 +309,8 @@ namespace WrldBxScript
         {
             return Match
             (
-                TokenType.TRAITS, TokenType.EFFECTS, TokenType.STATUSES, TokenType.PROJECTILES , TokenType.TERRAFORM , TokenType.UNITS //NEW_MAJOR_HERE
+                TokenType.TRAITS, TokenType.EFFECTS, TokenType.STATUSES, TokenType.PROJECTILES,
+                TokenType.TERRAFORM , TokenType.UNITS, TokenType.KINGDOMS //NEW_MAJOR_HERE
                 
             );
         }

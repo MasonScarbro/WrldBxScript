@@ -14,6 +14,7 @@ using Microsoft.Build.Evaluation;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using static WrldBxScript.StringHelpers;
 using WrldBxScript.Globals;
+using WrldBxScript.Objects;
 
 
 
@@ -39,7 +40,8 @@ namespace WrldBxScript
                 { "PROJECTILES", new WrldBxObjectRepository<IWrldBxObject>(id => new WrldBxProjectile(id)) },
                 { "STATUSES", new WrldBxObjectRepository<IWrldBxObject>(id => new WrldBxStatus(id)) },
                 { "TERRAFORMING", new WrldBxObjectRepository<IWrldBxObject>(id => new WrldBxTerraform(id)) },
-                { "UNITS", new WrldBxObjectRepository<IWrldBxObject>(id => new WrldBxunit(id)) }
+                { "UNITS", new WrldBxObjectRepository<IWrldBxObject>(id => new WrldBxunit(id)) },
+                { "KINGDOMS", new WrldBxObjectRepository<IWrldBxObject>(id => new WrldBxKingdom(id)) }
             };
 
             globals = new Dictionary<string, object>()
@@ -291,6 +293,12 @@ namespace WrldBxScript
                 //src.Append("\n\t\t}\n\t}\n}");
                 File.WriteAllText("C:/Users/Admin/Desktop/tempUnits.cs", src.ToString());
                 FormatCode("C:/Users/Admin/Desktop/tempUnits.cs");
+            }
+            if (type.lexeme.Equals("KINGDOMS"))
+            {
+            
+                File.WriteAllText("C:/Users/Admin/Desktop/kingdoms.cs", src.ToString());
+                FormatCode("C:/Users/Admin/Desktop/kingdoms.cs");
             }
             src.Clear(); //reset src for next starter
             count = 0;

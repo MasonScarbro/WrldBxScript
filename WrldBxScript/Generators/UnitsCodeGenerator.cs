@@ -13,6 +13,40 @@ namespace WrldBxScript
 {
     public class UnitsCodeGenerator : ICodeGenerator
     {
+        private static readonly HashSet<string> UniqueTraits = new HashSet<string>(new[] {
+            "evil",
+            "poison_immune",
+            "fire_proof",
+            "acid_proof",
+            "burning_feet",
+            "shiny",
+            "fire_blood",
+            "immortal",
+            "regeneration",
+            "blessed",
+            "agile",
+            "weightless",
+            "fast",
+            "energized",
+            "light_lamp",
+            "genius",
+            "freeze_proof",
+            "tough",
+            "strong_minded",
+            "wise",
+            "bloodlust",
+            "cold_aura",
+            "nightchild",
+            "moonchild",
+            "giant",
+            "strong",
+            "fat",
+            "ambitious",
+            "pyromaniac",
+            "veteran",
+            "acid_touch",
+            "acid_blood"
+        });
         private readonly Dictionary<string, WrldBxObjectRepository<IWrldBxObject>> _repositories;
         private readonly Dictionary<string, object> _globals;
         // Constructor that accepts repositories
@@ -306,41 +340,7 @@ namespace WrldBxScript
 
         private bool IsUniqueTraits(string check)
         {
-            return new List<string>
-            {
-                "evil",
-                "poison_immune",
-                "fire_proof",
-                "acid_proof",
-                "burning_feet",
-                "shiny",
-                "fire_blood",
-                "immortal",
-                "regeneration",
-                "blessed",
-                "agile",
-                "weightless",
-                "fast",
-                "energized",
-                "light_lamp",
-                "genius",
-                "freeze_proof",
-                "tough",
-                "strong_minded",
-                "wise",
-                "bloodlust",
-                "cold_aura",
-                "nightchild",
-                "moonchild",
-                "giant",
-                "strong",
-                "fat",
-                "ambitious",
-                "pyromaniac",
-                "veteran",
-                "acid_touch",
-                "acid_blood"
-            }.Contains(check);
+            return UniqueTraits.Contains(check);
         }
     }
 

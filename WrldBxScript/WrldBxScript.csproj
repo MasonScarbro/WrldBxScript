@@ -225,6 +225,7 @@
     <Compile Include="CodeGeneratorFactory.cs" />
     <Compile Include="Generators\EffectsCodeGenerator.cs" />
     <Compile Include="Generators\ICodeGenerator.cs" />
+    <Compile Include="Generators\KingdomCodeGenerator.cs" />
     <Compile Include="Generators\ProjectilesCodeGenerator.cs" />
     <Compile Include="Generators\StatusesCodeGenerator.cs" />
     <Compile Include="Generators\UnitsCodeGenerator.cs" />
@@ -234,6 +235,7 @@
     <Compile Include="Globals\IGlobal.cs" />
     <Compile Include="Globals\Invincible.cs" />
     <Compile Include="Globals\Shield.cs" />
+    <Compile Include="Objects\WrldBxKingdom.cs" />
     <Compile Include="Objects\WrldBxUnit.cs" />
     <Compile Include="StringHelpers.cs" />
     <Compile Include="Generators\TerraformCodeGenerator.cs" />
