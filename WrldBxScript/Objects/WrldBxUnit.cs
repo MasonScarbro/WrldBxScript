@@ -30,6 +30,7 @@ namespace WrldBxScript
         public double intelligence;
         public double warfare;
         public double stewardship;
+        public string kingdom;
         public WrldBxunit(string id)
         {
             this.id = id;
@@ -53,6 +54,7 @@ namespace WrldBxScript
             this.intelligence = 0;    
             this.warfare = 0;
             this.stewardship = 0;
+            kingdom = "SK.undead";
 
 
         }
@@ -148,6 +150,9 @@ namespace WrldBxScript
                         {
                             unit_traits.Add(value);
                         }
+                        break;
+                    case TokenType.KINGDOM:
+                        kingdom = (value.ToString());
                         break;
                     default:
                         throw new CompilerError(type,

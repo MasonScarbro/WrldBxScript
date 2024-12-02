@@ -47,6 +47,35 @@ namespace WrldBxScript
             "acid_touch",
             "acid_blood"
         });
+
+        private static readonly HashSet<string> KnownKingdoms = new HashSet<string>(new[] {
+            "snakes",
+            "snow",
+            "snowman",
+            "special",
+            "super_pumpkin",
+            "tornadoes",
+            "tumor",
+            "turtle",
+            "ufo",
+            "undead",
+            "walkers",
+            "wolves",
+            "crab",
+            "crabzilla",
+            "crocodiles",
+            "crystals",
+            "demons",
+            "dog",
+            "dragons",
+            "druid",
+            "dwarf",
+            "elf",
+            "evil",
+            "evilMage",
+            "demon"
+        });
+
         private readonly Dictionary<string, WrldBxObjectRepository<IWrldBxObject>> _repositories;
         private readonly Dictionary<string, object> _globals;
         // Constructor that accepts repositories
@@ -87,6 +116,7 @@ namespace WrldBxScript
                     $"{unit.id}.landCreature = {StringHelpers.ConvertBoolString(!unit.oceanCreature)};"+
                     $"{unit.id}.use_items = {StringHelpers.ConvertBoolString(!unit.use_items)};"+
                     $"{unit.id}.take_items = {StringHelpers.ConvertBoolString(!unit.take_items)};" +
+                    $"{HandleKingdom(unit)}"+
                     $"{HandlePath(unit, "Icon")}"+
                     $"{HandlePath(unit, "Sprite")}" +
                     $"{ToStatString(unit.id, "health")}{unit.health};" +
@@ -211,6 +241,24 @@ namespace WrldBxScript
                 }
             }
             return false;
+        }
+
+        private string HandleKingdom(WrldBxunit unit)
+        {
+            if (_repositories["KINGDOMS"].Exists(unit.id))
+            {
+                return $"{unit.id}.kingdom = \"{unit.kingdom}\"" + $"{unit.id}.race = \"{unit.kingdom}\"";
+            }
+            else if (KnownKingdoms.Contains(unit.kingdom))
+            {
+                return $"{unit.id}.kingdom = SK.{unit.kingdom}" + $"{unit.id}.race = SK.{unit.kingdom}";
+            }
+            else
+            {
+                WrldBxScript.Warning($"Your Kingdom for {unit.id} it was unrecognized" +
+                    $" was not added it was given a default value of undead");
+                return $"{unit.id}.kingdom = \"{unit.kingdom}\"" + $"{unit.id}.race = \"{unit.kingdom}\"";
+            }
         }
 
         private string HandlePath(WrldBxunit unit, string type)

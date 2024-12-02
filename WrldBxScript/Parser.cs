@@ -300,7 +300,7 @@ namespace WrldBxScript
                     TokenType.DAMAGEBUILDINGS,TokenType.SETFIRE,TokenType.SHAKE, TokenType.DESC,
                     TokenType.TEMPLATE,TokenType.JOB,TokenType.OCEANCREATURE,TokenType.FLYING,
                     TokenType.NEEDFOOD,TokenType.TAKE_ITEMS,TokenType.USE_ITEMS, TokenType.UNIT_TRAITS,
-                    TokenType.IS_MOB, TokenType.FRIENDLY, TokenType.ENEMY
+                    TokenType.IS_MOB, TokenType.FRIENDLY, TokenType.ENEMY, TokenType.KINGDOM
                     //NEW_MINORS_HERE
                 );
         }

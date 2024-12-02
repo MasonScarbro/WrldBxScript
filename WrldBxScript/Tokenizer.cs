@@ -95,6 +95,7 @@ namespace WrldBxScript
             { "IS_MOB", TokenType.IS_MOB },
             { "FRIENDLIES", TokenType.FRIENDLY },
             { "ENEMIES", TokenType.ENEMY },
+            { "KINGDOM", TokenType.KINGDOM },
 
 //NEW_MINORS_HERE
 

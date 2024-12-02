@@ -10,7 +10,7 @@ namespace WrldBxScript.Generators
 {
     public class KingdomCodeGenerator : ICodeGenerator
     {
-
+        //We should probably make this some sort of global shared throught the whole program
         private static readonly HashSet<string> KnownKingdoms = new HashSet<string>(new[] {
             "snakes",
             "snow",
