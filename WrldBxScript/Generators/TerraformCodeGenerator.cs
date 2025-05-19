@@ -29,7 +29,7 @@ namespace WrldBxScript
                 }
                 if (!terraformOption.explode_strength.HasValue && terraformOption.explode_tile == true)
                 {
-                    WrldBxScript.Warning($"You did not set explode_strength it was given a default value of 1");
+                    WrldBxScript.Warning($"You did not set explode_strength it was given a default value of 1", terraformOption);
                 }
                 src.Append(
                     $"flash = {terraformOption.flash}," +

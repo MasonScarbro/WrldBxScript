@@ -137,7 +137,7 @@ namespace WrldBxScript
                 {
                     WrldBxScript.Warning($"Could not find {effectKey}" +
                                          $" in your effects/projectiles. FAILED " +
-                                         $"to build power for it");
+                                         $"to build power for it", trait);
 
                 }
 
@@ -317,7 +317,7 @@ namespace WrldBxScript
                 if (!System.IO.File.Exists(trait.pathIcon.ToString()))
                 {
                     //give dummy path later 
-                    WrldBxScript.Warning("Path was not found using default");
+                    WrldBxScript.Warning("Path was not found using default", trait);
                     return $"{trait.id}.path_icon = \"ui/icons/iconBlessing\";";
                 }
 

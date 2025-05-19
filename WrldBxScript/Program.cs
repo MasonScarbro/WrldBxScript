@@ -181,6 +181,11 @@ namespace WrldBxScript
             Console.WriteLine($"WARNING: {msg}\n");
         }
 
+        public static void Warning(string msg, IWrldBxObject obj)
+        {
+            Console.WriteLine($"WARNING: {msg}\n [object: {obj.id} {obj.GetType()}]");
+        }
+
         private static void PrettyPrintStmts(List<Stmt> stmts)
         {
             foreach (Stmt stmt in stmts)

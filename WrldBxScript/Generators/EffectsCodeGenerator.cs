@@ -59,7 +59,7 @@ namespace WrldBxScript
                 if (!System.IO.Directory.Exists(effect.sprite_path.ToString()))
                 {
                     //give dummy path later 
-                    WrldBxScript.Warning("Path was not found using default");
+                    WrldBxScript.Warning("Path was not found using default", effect);
                     return $"texture_path = \"NakedMan\",";
 
                 }

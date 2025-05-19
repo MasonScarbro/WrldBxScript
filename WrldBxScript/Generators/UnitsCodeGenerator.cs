@@ -256,7 +256,7 @@ namespace WrldBxScript
             else
             {
                 WrldBxScript.Warning($"Your Kingdom for {unit.id} it was unrecognized" +
-                    $" was not added it was given a default value of undead");
+                    $" was not added it was given a default value of undead", unit);
                 return $"{unit.id}.kingdom = \"{unit.kingdom}\"" + $"{unit.id}.race = \"{unit.kingdom}\"";
             }
         }
@@ -268,7 +268,7 @@ namespace WrldBxScript
                 if (!System.IO.File.Exists(unit.icon.ToString()))
                 {
                     //give dummy path later 
-                    WrldBxScript.Warning("Path was not found using default");
+                    WrldBxScript.Warning("Path was not found using default", unit);
                     return $"{unit.id}.icon = \"ui/icons/iconBlessing\";";
                 }
 
@@ -304,7 +304,7 @@ namespace WrldBxScript
                 if (!System.IO.Directory.Exists(unit.sprite.ToString()))
                 {
                     //give dummy path later 
-                    WrldBxScript.Warning("Path was not found using default");
+                    WrldBxScript.Warning("Path was not found using default", unit);
                     return $"{unit.id}.texture_path = \"NakedMan\";"+
                            $"{unit.id}.animation_swim = \"swim_0,swim_1,swim_2,swim_3\";" +
                            $"{unit.id}.animation_walk = \"walk_0,walk_1,walk_2,walk_3\";";
