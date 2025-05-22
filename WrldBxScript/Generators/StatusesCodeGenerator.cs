@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -36,7 +37,7 @@ namespace WrldBxScript
                 AddIfHasValue(src, status.intelligence, "intelligence", status.id);
                 AddIfHasValue(src, status.warfare, "warfare", status.id);
                 AddIfHasValue(src, status.stewardship, "stewardship", status.id);
-                src.AppendLine(HandlePath(status, "Icon"));
+                src.AppendLine(HandlePath(status));
 
                 AddReqCodeToBlock(src, status.id);
 
@@ -90,47 +91,42 @@ namespace WrldBxScript
             src.Append($"AssetManager.status.add({name});"); 
         }
 
-        private string HandlePath(WrldBxStatus status, string type)
+        private string HandlePath(WrldBxStatus status)
         {
-            if (type.Equals("Icon"))
+            
+            status.pathIcon = status.pathIcon.ToString().Trim('"');
+            if (!System.IO.File.Exists(status.pathIcon.ToString()))
             {
-                if (!System.IO.File.Exists(status.pathIcon.ToString()))
-                {
-                    //give dummy path later 
-                    WrldBxScript.Warning("Path was not found using default");
-                    return $"{status.id}.path_icon = \"ui/icons/iconBlessing\";";
-                }
-
-                //For now its a dummy location for the desktop, later we will need to get the workdir
-                string targetLocation = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                                         "FakeMod", "main", "GameResources", "ui", "icons");
-
-                System.IO.Directory.CreateDirectory(targetLocation);
-
-                string targetPath = System.IO.Path.Combine(targetLocation, System.IO.Path.GetFileName(status.pathIcon.ToString()));
-
-                if (System.IO.File.Exists(targetPath))
-                {
-                    return $"{status.id}.path_icon = \"{status.pathIcon}\";";
-                }
-                //else
-                try
-                {
-                    string fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(status.pathIcon.ToString());
-                    System.IO.File.Move(status.pathIcon.ToString(), targetPath);
-                    return $"{status.id}.path_icon = \"ui/icons/{fileNameWithoutExtension}\";";
-                }
-                catch (Exception ex)
-                {
-
-                    //TODO: For Error like warning we need to make a debug log that the user can check
-                    WrldBxScript.Warning($"There was an error moving the files, with path: {status.pathIcon}, using default path");
-                    return $"{status.id}.path_icon = \"{status.pathIcon}\";";
-                }
+                //give dummy path later 
+                WrldBxScript.Warning("Path was not found using default");
+                return $"{status.id}.path_icon = \"ui/icons/iconBlessing\";";
             }
 
+            // 5/21/2025, UPDATED TOUSE THE MOD FOLDER TESTING PENDING
+            string targetLocation = Path.Combine(WrldBxScript.compiler.OutwardModFolder, "GameResources", "ui", "icons");
+            if (!Directory.Exists(targetLocation)) Directory.CreateDirectory(targetLocation);
+
+            string targetPath = System.IO.Path.Combine(targetLocation, System.IO.Path.GetFileName(status.pathIcon.ToString()));
+
+            if (System.IO.File.Exists(targetPath))
+            {
+                return $"{status.id}.path_icon = \"{status.pathIcon}\";";
+            }
             //else
-            return "";
+            try
+            {
+                string fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(status.pathIcon.ToString());
+                System.IO.File.Move(status.pathIcon.ToString(), targetPath);
+                return $"{status.id}.path_icon = \"ui/icons/{fileNameWithoutExtension}\";";
+            }
+            catch (Exception ex)
+            {
+
+                //TODO: For Error like warning we need to make a debug log that the user can check
+                WrldBxScript.Warning($"There was an error moving the files, with path: {status.pathIcon}, using default path");
+                return $"{status.id}.path_icon = \"{status.pathIcon}\";";
+            }
+            
 
         }
 

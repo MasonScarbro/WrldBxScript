@@ -256,21 +256,14 @@ namespace WrldBxScript
 
         private void CompileToFile(Token type)
         {
-            if (Directory.Exists($"{WorldBoxModFolder}/{modname}"))
-            {
-                if (count == 0)
-                {
-                    throw new CompilerError(type, "You have not added any blocks to the mod");
-                }
-            }
-            else
+            if (!Directory.Exists($"{OutwardModFolder}"))
             {
                 //this shouldnt happen but if it somehow does
-                Directory.CreateDirectory(Path.Combine(WorldBoxModFolder, modname));
+                Directory.CreateDirectory(Path.Combine(WorldBoxModFolder, $"{modname}/Code"));
             }
              
-            File.WriteAllText($"{WorldBoxModFolder}/{modname}/{ToParaCase(type.lexeme.ToLower())}.cs", src.ToString());
-            FormatCode($"{WorldBoxModFolder}/{modname}/{ToParaCase(type.lexeme.ToLower())}.cs");
+            File.WriteAllText($"{OutwardModFolder}/Code/{ToParaCase(type.lexeme.ToLower())}.cs", src.ToString());
+            FormatCode($"{OutwardModFolder}/Code/{ToParaCase(type.lexeme.ToLower())}.cs");
             PlugInInit(ToParaCase(type.lexeme.ToLower()));
             src.Clear(); //reset src for next starter
             count = 0;
@@ -322,10 +315,25 @@ namespace WrldBxScript
 
         #endregion
 
-        private string WorldBoxModFolder => TryGetModFolder();
+        private string _worldBoxModFolder;
 
+        public string WorldBoxModFolder
+        {
+            get
+            {
+                if (_worldBoxModFolder == null)
+                {
+                    _worldBoxModFolder = TryGetModFolder();
+                }
+                return _worldBoxModFolder;
+            }
+        }
+
+        public string OutwardModFolder => Path.Combine(WorldBoxModFolder, modname);
         private string TryGetModFolder()
         {
+           
+          
             string[] drives = Environment.GetLogicalDrives();
             string relativePath = @"steamapps\common\worldbox\Mods";
 
@@ -362,9 +370,9 @@ namespace WrldBxScript
         }
         private void PlugInInit(string type)
         {
-            string txt = File.ReadAllText($"{WorldBoxModFolder}/{modname}/Main.cs");
+            string txt = File.ReadAllText($"{OutwardModFolder}/Code/Main.cs");
             txt = txt.Replace("//INIT_HERE", $"{type}.init();\n//INIT_HERE");
-            File.WriteAllText($"{WorldBoxModFolder}/{modname}/Main.cs", txt);
+            File.WriteAllText($"{OutwardModFolder}/Code/Main.cs", txt);
         }
 
         private void CompileMainCode()
@@ -393,8 +401,8 @@ namespace GodsAndPantheons
         }
     }
 }";
-            Directory.CreateDirectory(Path.Combine(WorldBoxModFolder, modname));
-            File.WriteAllText($"{WorldBoxModFolder}/{modname}/Main.cs",
+            Directory.CreateDirectory(Path.Combine(WorldBoxModFolder, $"{modname}/Code"));
+            File.WriteAllText($"{WorldBoxModFolder}/{modname}/Code/Main.cs",
                 modScript);
         }
     

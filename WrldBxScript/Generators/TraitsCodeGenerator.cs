@@ -314,6 +314,7 @@ namespace WrldBxScript
         {
             if (type.Equals("Icon"))
             {
+                trait.pathIcon = trait.pathIcon.ToString().Trim('"'); // For some reason the other handlepaths dont need this i dont think
                 if (!System.IO.File.Exists(trait.pathIcon.ToString()))
                 {
                     //give dummy path later 
@@ -321,11 +322,11 @@ namespace WrldBxScript
                     return $"{trait.id}.path_icon = \"ui/icons/iconBlessing\";";
                 }
 
-                //For now its a dummy location for the desktop, later we will need to get the workdir
-                string targetLocation = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                                         "FakeMod", "main", "GameResources", "ui", "icons");
+                // 5/21/2025, UPDATED TOUSE THE MOD FOLDER TESTING PENDING
+                string targetLocation = System.IO.Path.Combine(WrldBxScript.compiler.OutwardModFolder, "GameResources", "ui", "icons");
 
-                System.IO.Directory.CreateDirectory(targetLocation);
+                if (!System.IO.Directory.Exists(targetLocation)) 
+                    System.IO.Directory.CreateDirectory(targetLocation);
 
                 string targetPath = System.IO.Path.Combine(targetLocation, System.IO.Path.GetFileName(trait.pathIcon.ToString()));
 
