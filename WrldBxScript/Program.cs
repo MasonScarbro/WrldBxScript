@@ -144,12 +144,12 @@ namespace WrldBxScript
                 }
 
                 foreach (var file in orderedFiles)
-        {
-            byte[] bytes = File.ReadAllBytes(file);
-            string fileContent = Encoding.Default.GetString(bytes);
-            combinedSource.Append(fileContent);
-            combinedSource.Append(Environment.NewLine); // Ensure files are separated by a newline
-        }
+                {
+                    byte[] bytes = File.ReadAllBytes(file);
+                    string fileContent = Encoding.Default.GetString(bytes);
+                    combinedSource.Append(fileContent);
+                    combinedSource.Append(Environment.NewLine); // Ensure files are separated by a newline
+                }
                 // Run the combined source code
                 Run(combinedSource.ToString());
 

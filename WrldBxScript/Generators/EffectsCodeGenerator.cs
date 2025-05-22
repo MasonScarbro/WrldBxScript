@@ -64,9 +64,8 @@ namespace WrldBxScript
 
                 }
                 string spriteFolderName = System.IO.Path.GetFileName(effect.sprite_path.ToString());
-                //For now its a dummy location for the desktop, later we will need to get the workdir
-                string targetLocation = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                                         "FakeMod", "main", "GameResources", "effects");
+                // 5/21/2025, UPDATED TOUSE THE MOD FOLDER TESTING PENDING
+                string targetLocation = System.IO.Path.Combine(WrldBxScript.compiler.OutwardModFolder, "GameResources", "effects");
 
                 if (System.IO.Directory.Exists(targetLocation))
                 {

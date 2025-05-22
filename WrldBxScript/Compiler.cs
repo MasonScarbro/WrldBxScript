@@ -108,6 +108,7 @@ namespace WrldBxScript
             if (stmtv.type.lexeme.ToUpper().Equals("MODNAME"))
             {
                 modname = VerifyModnameType(stmtv);
+                CompileMainCode(); // this happens once so compile and plugin later, if we do god edits we need to handle that
 
             }
             else if (name == null && modname == null)
@@ -255,51 +256,15 @@ namespace WrldBxScript
 
         private void CompileToFile(Token type)
         {
-            if (type.lexeme.Equals("TRAITS"))
+            if (!Directory.Exists($"{OutwardModFolder}"))
             {
-
-
-                File.WriteAllText("C:/Users/Admin/Desktop/fart.cs", src.ToString());
-                FormatCode("C:/Users/Admin/Desktop/fart.cs");
-
-
+                //this shouldnt happen but if it somehow does
+                Directory.CreateDirectory(Path.Combine(WorldBoxModFolder, $"{modname}/Code"));
             }
-            if (type.lexeme.Equals("EFFECTS"))
-            {
-
-                File.WriteAllText("C:/Users/Admin/Desktop/doodoo.cs", src.ToString());
-                FormatCode("C:/Users/Admin/Desktop/doodoo.cs");
-            }
-            if (type.lexeme.Equals("STATUSES"))
-            {
-
-                File.WriteAllText("C:/Users/Admin/Desktop/statsus.cs", src.ToString());
-                FormatCode("C:/Users/Admin/Desktop/statsus.cs");
-            }
-            if (type.lexeme.Equals("PROJECTILES"))
-            {
-
-                File.WriteAllText("C:/Users/Admin/Desktop/poopoo.cs", src.ToString());
-                FormatCode("C:/Users/Admin/Desktop/poopoo.cs");
-            }
-            if (type.lexeme.Equals("TERRAFORMING"))
-            {
-                //src.Append("\n\t\t}\n\t}\n}");
-                File.WriteAllText("C:/Users/Admin/Desktop/terra.cs", src.ToString());
-                FormatCode("C:/Users/Admin/Desktop/terra.cs");
-            }
-            if (type.lexeme.Equals("UNITS"))
-            {
-                //src.Append("\n\t\t}\n\t}\n}");
-                File.WriteAllText("C:/Users/Admin/Desktop/tempUnits.cs", src.ToString());
-                FormatCode("C:/Users/Admin/Desktop/tempUnits.cs");
-            }
-            if (type.lexeme.Equals("KINGDOMS"))
-            {
-            
-                File.WriteAllText("C:/Users/Admin/Desktop/kingdoms.cs", src.ToString());
-                FormatCode("C:/Users/Admin/Desktop/kingdoms.cs");
-            }
+             
+            File.WriteAllText($"{OutwardModFolder}/Code/{ToParaCase(type.lexeme.ToLower())}.cs", src.ToString());
+            FormatCode($"{OutwardModFolder}/Code/{ToParaCase(type.lexeme.ToLower())}.cs");
+            PlugInInit(ToParaCase(type.lexeme.ToLower()));
             src.Clear(); //reset src for next starter
             count = 0;
         }
@@ -350,10 +315,98 @@ namespace WrldBxScript
 
         #endregion
 
+        private string _worldBoxModFolder;
 
+        public string WorldBoxModFolder
+        {
+            get
+            {
+                if (_worldBoxModFolder == null)
+                {
+                    _worldBoxModFolder = TryGetModFolder();
+                }
+                return _worldBoxModFolder;
+            }
+        }
 
+        public string OutwardModFolder => Path.Combine(WorldBoxModFolder, modname);
+        private string TryGetModFolder()
+        {
+           
+          
+            string[] drives = Environment.GetLogicalDrives();
+            string relativePath = @"steamapps\common\worldbox\Mods";
 
+            // Search all drives for Steam library paths
+            foreach (string drive in drives)
+            {
+                string[] possibleBasePaths =
+                {
+                Path.Combine(drive, @"Program Files (x86)\Steam", relativePath),
+                Path.Combine(drive, @"SteamLibrary", relativePath),
+                Path.Combine(drive, @"Steam", relativePath),
+            };
 
+                foreach (string path in possibleBasePaths)
+                {
+                    if (Directory.Exists(path))
+                    {
+                        Console.WriteLine("Found WorldBox Mods folder at: " + path);
+                        return path;
+                    }
+                }
+            }
 
+            // If not found, default to Desktop
+            string desktopFallback = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                "WorldboxMods");
+
+            Console.WriteLine("WorldBox Mods folder not found. Defaulting to Desktop at:");
+            Console.WriteLine(desktopFallback);
+
+            Directory.CreateDirectory(desktopFallback);
+            return desktopFallback;
+        }
+        private void PlugInInit(string type)
+        {
+            string txt = File.ReadAllText($"{OutwardModFolder}/Code/Main.cs");
+            txt = txt.Replace("//INIT_HERE", $"{type}.init();\n//INIT_HERE");
+            File.WriteAllText($"{OutwardModFolder}/Code/Main.cs", txt);
+        }
+
+        private void CompileMainCode()
+        {
+            string modScript = @"
+using System.IO;
+using System.Collections.Generic;
+using System.Reflection;
+using NCMS;
+using UnityEngine;
+using Newtonsoft.Json;
+using HarmonyLib;
+using NeoModLoader.constants;
+using GodsAndPantheons.AI;
+using GodsAndPantheons.Patches;
+using ai.behaviours;
+
+namespace GodsAndPantheons
+{
+    [ModEntry]
+    class Main : MonoBehaviour
+    {
+        void Awake()
+        {
+            //INIT_HERE
+        }
     }
+}";
+            Directory.CreateDirectory(Path.Combine(WorldBoxModFolder, $"{modname}/Code"));
+            File.WriteAllText($"{WorldBoxModFolder}/{modname}/Code/Main.cs",
+                modScript);
+        }
+    
+    }
+
+    
 }

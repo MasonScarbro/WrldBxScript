@@ -15,6 +15,11 @@ namespace WrldBxScript
         {
             _repositories = repositories;
         }
+        /// <summary>
+        /// Generates the code for projectiles
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="modname"></param>
         public void GenerateCode(StringBuilder src, string modname)
         {
             src.AppendLine("\tpublic static void init() \n\t{");
@@ -56,12 +61,23 @@ namespace WrldBxScript
             src.AppendLine("\t}\n}");
         }
 
+        /// <summary>
+        /// adds block ids
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="name"></param>
         public void AddBlockId(StringBuilder src, object name)
         {
             src.AppendLine($"\t\tvar {name} = AssetManager.effects_library.add(new EffectAsset {{");
             src.AppendLine($"\t\t\tid = {InQuotes(name.ToString())}");
         }
 
+        /// <summary>
+        /// Adds Required code like the call method
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="name"></param>
+        /// <param name="appendage"></param>
         public void AddReqCodeToBlock(StringBuilder src, object name, string appendage = null)
         {
             src.AppendLine("\t\t});");
@@ -73,6 +89,7 @@ namespace WrldBxScript
 
             if (type.Equals("Sprite"))
             {
+                
                 if (!System.IO.Directory.Exists(projectile.texture.ToString()))
                 {
                     //give dummy path later 
@@ -81,10 +98,10 @@ namespace WrldBxScript
 
                 }
                 string spriteFolderName = System.IO.Path.GetFileName(projectile.texture.ToString());
-                //For now its a dummy location for the desktop, later we will need to get the workdir
-                string targetLocation = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                                         "FakeMod", "main", "GameResources", "effects", "projectiles");
+                // 5/21/2025, UPDATED TOUSE THE MOD FOLDER TESTING PENDING
+                string targetLocation = System.IO.Path.Combine(WrldBxScript.compiler.OutwardModFolder, "GameResources", "effects", "projectiles");
 
+                // if it already exists
                 if (System.IO.Directory.Exists(targetLocation))
                 {
                     return $"texture = \"effects/{spriteFolderName}\",";
@@ -108,6 +125,8 @@ namespace WrldBxScript
             return "";
 
         }
+
+        // Copy the contents of one directory to another
         private void CopyDirectory(string sourceDir, string targetDir)
         {
             System.IO.Directory.CreateDirectory(targetDir);

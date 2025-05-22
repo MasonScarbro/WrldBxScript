@@ -40,5 +40,7 @@ namespace WrldBxScript
         "\n{" +
         "\t\tActionLibrary.addFrozenEffectOnTarget(null, pTarget, null);" +
         "\n}";
+
+       
     }
 }
