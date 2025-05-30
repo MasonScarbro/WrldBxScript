@@ -40,6 +40,20 @@ namespace WrldBxScript
         "\t\tActionLibrary.addFrozenEffectOnTarget(null, pTarget, null);" +
         "\n}";
 
-       
+
+        public const string GENERICUSINGSTMTS = @"
+using ai;
+using HarmonyLib;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using UnityEngine;
+using NCMS.Utils;
+using NCMS;";
+
+
     }
 }

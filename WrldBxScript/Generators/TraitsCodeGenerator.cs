@@ -47,7 +47,7 @@ namespace WrldBxScript
                     src.AppendLine($"{trait.id}.action_special_effect = (WorldAction)Delegate.Combine({trait.id}.action_special_effect, new WorldAction({trait.id}Special));");
                 }
                 //NOTE: test if this works if you never put any powers ^
-                AddReqCodeToBlock(src, trait.id, $"addTraitToLocalizedLibrary({trait.id}, {InQuotes(trait.desc)});");
+                AddReqCodeToBlock(src, trait.id, $"addTraitToLocalizedLibrary({trait.id}.id, {InQuotes(trait.desc)});");
 
                 funcs.Append(BuildTraitPowerFunctions(trait));
 
@@ -73,7 +73,7 @@ namespace WrldBxScript
                 "\n\t{";
 
             string mainSpecialFunc =
-                $"public static bool {trait.id}Special(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile)" +
+                $"public static bool {trait.id}Special(BaseSimObject pSelf, WorldTile pTile)" +
                 "\n{" +
                 "\n\tif (pSelf.a != null)" +
                 "\n\t{";
@@ -305,7 +305,7 @@ namespace WrldBxScript
 
         public void AddReqCodeToBlock(StringBuilder src, object name, string appendage = null)
         {
-            src.Append("\t\t\nAssetManger.traits.add(" + name.ToString() + ");");
+            src.Append("\t\t\nAssetManager.traits.add(" + name.ToString() + ");");
             src.Append($"\t\t\n{name.ToString()}.unlock();\n");
             src.Append(appendage);
         }

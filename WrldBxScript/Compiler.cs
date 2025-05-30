@@ -125,6 +125,7 @@ namespace WrldBxScript
         public void HandleStarterStmt(Stmt.Starter stmtst)
         {
             if (modname == null) modname = "MyDummyMod";
+            src.AppendLine(Constants.GENERICUSINGSTMTS);
             src.AppendLine($"namespace {modname}");
             src.AppendLine("{");
             src.AppendLine($"\tclass {ToParaCase(stmtst.type.lexeme)}");
