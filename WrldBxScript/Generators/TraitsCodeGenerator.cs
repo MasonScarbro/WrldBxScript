@@ -43,8 +43,8 @@ namespace WrldBxScript
                 src.AppendLine(HandlePath(trait, "Icon"));
                 if (trait.effectName != null)
                 {
-                    src.AppendLine($"{trait.id}.action_attack_target = new AttackAction({trait.id});");
-                    src.AppendLine($"{trait.id}.action_special_effect = (WorldAction)Delegate.Combine({trait.id}.action_special_effect, new WorldAction({trait.id}Attack));");
+                    src.AppendLine($"{trait.id}.action_attack_target = new AttackAction({trait.id}Attack);");
+                    src.AppendLine($"{trait.id}.action_special_effect = (WorldAction)Delegate.Combine({trait.id}.action_special_effect, new WorldAction({trait.id}Special));");
                 }
                 //NOTE: test if this works if you never put any powers ^
                 AddReqCodeToBlock(src, trait.id, $"addTraitToLocalizedLibrary({trait.id}, {InQuotes(trait.desc)});");
@@ -306,7 +306,7 @@ namespace WrldBxScript
         public void AddReqCodeToBlock(StringBuilder src, object name, string appendage = null)
         {
             src.Append("\t\t\nAssetManger.traits.add(" + name.ToString() + ");");
-            src.Append("\t\t\nPlayerConfig.unlockTrait(" + name.ToString() + ".id);\n");
+            src.Append($"\t\t\n{name.ToString()}.unlock();\n");
             src.Append(appendage);
         }
 

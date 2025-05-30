@@ -15,6 +15,7 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using static WrldBxScript.StringHelpers;
 using WrldBxScript.Globals;
 using WrldBxScript.Objects;
+using System.Xml.Linq;
 
 
 
@@ -377,7 +378,7 @@ namespace WrldBxScript
 
         private void CompileMainCode()
         {
-            string modScript = @"
+            string modScript = $@"
 using System.IO;
 using System.Collections.Generic;
 using System.Reflection;
@@ -386,21 +387,19 @@ using UnityEngine;
 using Newtonsoft.Json;
 using HarmonyLib;
 using NeoModLoader.constants;
-using GodsAndPantheons.AI;
-using GodsAndPantheons.Patches;
 using ai.behaviours;
 
-namespace GodsAndPantheons
-{
+namespace {modname}
+{{
     [ModEntry]
     class Main : MonoBehaviour
-    {
+    {{
         void Awake()
-        {
+        {{
             //INIT_HERE
-        }
-    }
-}";
+        }}
+    }}
+}}";
             Directory.CreateDirectory(Path.Combine(WorldBoxModFolder, $"{modname}/Code"));
             File.WriteAllText($"{WorldBoxModFolder}/{modname}/Code/Main.cs",
                 modScript);
