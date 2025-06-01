@@ -110,7 +110,7 @@ namespace WrldBxScript
             {
                 modname = VerifyModnameType(stmtv);
                 CompileMainCode(); // this happens once so compile and plugin later, if we do god edits we need to handle that
-
+                ModInfo.Write($"{OutwardModFolder}/mod.json", modname);
             }
             else if (name == null && modname == null)
             {
