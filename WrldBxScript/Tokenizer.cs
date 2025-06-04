@@ -72,6 +72,7 @@ namespace WrldBxScript
             { "ARCHES", TokenType.PARABOLIC },
             { "LOOKING_AT_TARGET", TokenType.FACINGTRGT},
             { "ALWAYS_FACING_TARGET", TokenType.FACINGTRGT},
+            { "SCALE", TokenType.SCALE},
             { "COMBINE", TokenType.COMBINE },
             { "FLASH", TokenType.FLASH },
             { "ADDBURNED", TokenType.ADDBURNED },

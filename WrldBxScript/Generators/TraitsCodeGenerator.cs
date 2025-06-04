@@ -49,7 +49,7 @@ namespace WrldBxScript
                 //NOTE: test if this works if you never put any powers ^
                 AddReqCodeToBlock(src, trait.id, $"addTraitToLocalizedLibrary({trait.id}.id, {InQuotes(trait.desc)});");
 
-                funcs.Append(BuildTraitPowerFunctions(trait));
+                funcs.Append(BuildTraitPowerFunctions(trait, src));
 
             }
 
@@ -62,7 +62,7 @@ namespace WrldBxScript
 
 
 
-        private string BuildTraitPowerFunctions(WrldBxTrait trait)
+        private string BuildTraitPowerFunctions(WrldBxTrait trait, StringBuilder osb)
         {
 
             string powerFuncs = "";
@@ -99,7 +99,7 @@ namespace WrldBxScript
                     if (effect.IsAttack)
                     {
                         mainAttackFunc +=
-                            $"\n\t\tif (Toolbox.randomChance({effect.chance}))" +
+                            $"\n\t\tif (Randy.randomChance({effect.chance}))" +
                             "\n\t\t{" +
                             $"\n\t\t\t{effect.id}(pSelf, pTarget, pTile);" +
                             "\n\t\t}";
@@ -108,7 +108,7 @@ namespace WrldBxScript
                     else
                     {
                         mainSpecialFunc +=
-                            $"\n\t\tif (Toolbox.randomChance({effect.chance}))" +
+                            $"\n\t\tif (Randy.randomChance({effect.chance}))" +
                             "\n\t\t{" +
                             $"\n\t\t\t{effect.id}(pSelf, pTarget, pTile);" +
                             "\n\t\t}";
@@ -126,9 +126,12 @@ namespace WrldBxScript
                                   "\n\t}" +
                                   "\n\t\treturn false;" +
                                   "\n}";
-
+                    if (osb.ToString().Contains(powerFuncs))
+                    {
+                        osb.Replace(powerFuncs, powerFuncs); //this seems stupid but recompiling on the same build needs this so that it doesnt just add it
+                    }
                     mainAttackFunc +=
-                        $"\n\t\tif (Toolbox.randomChance({projectile.chance}))" +
+                        $"\n\t\tif (Randy.randomChance({projectile.chance}))" +
                         "\n\t\t{" +
                         $"\n\t\t\t{projectile.id}(pSelf, pTarget, pTile);" +
                         "\n\t\t}";
@@ -185,11 +188,24 @@ namespace WrldBxScript
 
         private string SpawnProjectileCode(WrldBxProjectile projectile)
         {
-            return "Vector2Int pos = pTile.pos;" +
-                   "float pDist = Vector2.Distance(pTarget.currentPosition, pos);" +
-                   "Vector3 newPoint = Toolbox.getNewPoint(pSelf.currentPosition.x, pSelf.currentPosition.y, (float)pos.x, (float)pos.y, pDist, true);" +
-                   "Vector3 newPoint2 = Toolbox.getNewPoint(pTarget.currentPosition.x, pTarget.currentPosition.y, (float)pos.x, (float)pos.y, pTarget.a.stats[S.size], true);" +
-                   $"EffectsLibrary.spawnProjectile({InQuotes(projectile.id)}, newPoint, newPoint2, 0.0f);";
+            // TODO: amount needs to be set to the projectile.amount
+            return $@"
+            Vector2 Pos = default;
+            Vector3 Start = Pos == default ? pSelf.current_position : Pos;
+            int amount = 1;
+            float tZ = 0f; 
+            float pZ = 0.25f;
+            if (pTarget.isInAir())
+            {{
+                tZ = pTarget.getHeight();
+            }}
+            for (int i = 0; i < amount; i++)
+            {{
+                Vector3 tTargetPos = pTarget.current_tile.posV3;
+                tTargetPos.x += Randy.randomFloat(-(pTarget.stats[""size""] + 1f), pTarget.stats[""size""] + 1f);
+                tTargetPos.y += Randy.randomFloat(-pTarget.stats[""size""], pTarget.stats[""size""]);
+                World.world.projectiles.spawn(pSelf, pTarget, {InQuotes(projectile.id)}, Start, tTargetPos, tZ, pZ);
+            }}";
         }
         private string SpawnEffectCode(WrldBxEffect effect)
         {
@@ -268,7 +284,7 @@ namespace WrldBxScript
         }
         private string ToStatString(string nameP, string type)
         {
-            return "\t\t\n" + ReplaceWhiteSpace(nameP.ToLower()) + ".base_stats[S." + type + "] += ";
+            return "\t\t\n" + ReplaceWhiteSpace(nameP) + ".base_stats[S." + type + "] += ";
         }
         private string ToParaCase(string str)
         {

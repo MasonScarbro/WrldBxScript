@@ -15,7 +15,7 @@ namespace WrldBxScript
 
         private Dictionary<TokenType, int> StarterPrecedence = new Dictionary<TokenType, int>
         {
-            { TokenType.TRAITS, 10 }, //hundo cus it needa stay last man
+            { TokenType.TRAITS, 10 }, 
             { TokenType.UNITS, 11 }, // Units can go after traits, it relies on traits
             { TokenType.EFFECTS, 2},
             { TokenType.PROJECTILES, 2},

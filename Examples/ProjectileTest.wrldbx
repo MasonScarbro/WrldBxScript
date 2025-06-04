@@ -1,0 +1,19 @@
+MODNAME: testingWithProjectile,
+PROJECTILES
+[
+  {
+    ID: testProjectile,
+    CHANCE: 5,
+    SCALE: 1,
+    SPEED: 40,
+    SPRITE: "C:\Program Files (x86)\Steam\steamapps\common\worldbox\Mods\Pantheon Mod\GameResources\effects\projectiles\warAxeProjectileTest",
+  }
+]
+TRAITS
+[
+  {
+    NAME: justATest,
+    DAMAGE: 4,
+    POWERS: testProjectile
+  }
+]
