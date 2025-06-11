@@ -75,7 +75,7 @@ namespace WrldBxScript.Globals
                                 return $"AssetManager.actor_library.CallMethod(\"addTrait\", \"{arguments[0].ToString()}\");";
                             }
                             var target = arguments.Count > 1 && arguments[1]?.ToString() == "self" ? "pSelf" : "pTarget";
-                            return $"{target}.a.addTrait({arguments[0].ToString()})";
+                            return $"{target}.addTrait({arguments[0].ToString()})";
                             
                         }
                         
