@@ -88,14 +88,15 @@ namespace WrldBxScript
         public void AddBlockId(StringBuilder src, object name)
         {
             src.Append($"var {name} = AssetManager.actor_library.clone(\"{name}\", \"_mob\");");
-            src.Append($"{name}.nameLocale = \"{name}\"");
+            src.Append($"{name}.name_locale = \"{name}\"");
         }
 
         public void AddReqCodeToBlock(StringBuilder src, object name, string appendage = null)
         {
-            src.Append($"AssetManager.actor_library.add({name})");
-            src.Append($"{(appendage == null ? "" : appendage)}");
-            src.Append($"Localization.addLocalization({name}.nameLocale, {name}.nameLocale);");
+            src.Append($"AssetManager.actor_library.loadShadow({name});\r\n" +
+                $"AssetManager.actor_library.loadTexturesAndSprites({name});");
+            src.Append($"{(appendage ?? "")}");
+            src.Append($"Localization.addLocalization({name}.name_locale, {name}.name_locale);");
         }
 
         public void GenerateCode(StringBuilder src, string modname)
@@ -112,29 +113,30 @@ namespace WrldBxScript
                     $"{unit.id}.nameTemplate = {unit.template};" +
                     $"{unit.id}.needFood = {StringHelpers.ConvertBoolString(unit.needFood)};" +
                     $"{unit.id}.flying = {StringHelpers.ConvertBoolString(unit.flying)};" +
-                    $"{unit.id}.oceanCreature = {StringHelpers.ConvertBoolString(unit.oceanCreature)};" +
-                    $"{unit.id}.landCreature = {StringHelpers.ConvertBoolString(!unit.oceanCreature)};"+
+                    $"{unit.id}.force_ocean_creature = {StringHelpers.ConvertBoolString(unit.oceanCreature)};" +
+                    $"{unit.id}.force_land_creature = {StringHelpers.ConvertBoolString(!unit.oceanCreature)};"+
                     $"{unit.id}.use_items = {StringHelpers.ConvertBoolString(!unit.use_items)};"+
                     $"{unit.id}.take_items = {StringHelpers.ConvertBoolString(!unit.take_items)};" +
                     $"{HandleKingdom(unit)}"+
                     $"{HandlePath(unit, "Icon")}"+
                     $"{HandlePath(unit, "Sprite")}" +
-                    $"{ToStatString(unit.id, "health")}{unit.health};" +
-                    $"{ToStatString(unit.id, "accuracy")}{unit.accuracy};" +
-                    $"{ToStatString(unit.id, "range")}{unit.range};" +
-                    $"{ToStatString(unit.id, "attack_speed")}{unit.attackSpeed};" +
-                    $"{ToStatString(unit.id, "crit_chance")}{unit.critChance};" +
-                    $"{ToStatString(unit.id, "damage")}{unit.damage};" +
-                    $"{ToStatString(unit.id, "dodge")}{unit.dodge};" +
-                    $"{ToStatString(unit.id, "scale")}{unit.scale};" +
-                    $"{ToStatString(unit.id, "stewardship")}{unit.stewardship};" +
-                    $"{ToStatString(unit.id, "warfare")}{unit.warfare};" +
-                    $"{ToStatString(unit.id, "intelligence")}{unit.intelligence};" 
+                    $"{ToStatString(unit.id, "health", unit.health)}" +
+                    $"{ToStatString(unit.id, "accuracy", unit.accuracy)}" +
+                    $"{ToStatString(unit.id, "range", unit.range)}" +
+                    $"{ToStatString(unit.id, "attack_speed", unit.attackSpeed)};" +
+                    $"{ToStatString(unit.id, "crit_chance", unit.critChance)};" +
+                    $"{ToStatString(unit.id, "damage", unit.damage)};" +
+                    $"{ToStatString(unit.id, "dodge", unit.dodge)};" +
+                    $"{ToStatString(unit.id, "scale", unit.scale)};" +
+                    $"{ToStatString(unit.id, "stewardship", unit.stewardship)};" +
+                    $"{ToStatString(unit.id, "warfare", unit.warfare)};" +
+                    $"{ToStatString(unit.id, "intelligence", unit.intelligence)};" 
                     
                     );
                 //Constant
                 src.Append
                     (
+                    $"{unit.id}.use_phenotypes = false;\r\n" +
                     $"{unit.id}.run_to_water_when_on_fire = true;\r\n" +
                     $"{unit.id}.can_edit_traits = true;\r\n" +
                     $"{unit.id}.canBeKilledByDivineLight = false;\r\n" +
@@ -153,6 +155,7 @@ namespace WrldBxScript
                     $"{unit.id}.zombieID = \"zombie\";"+
                     $"{unit.id}.can_turn_into_demon_in_age_of_chaos = false;\n" +
                     $"{unit.id}.canTurnIntoIceOne = false;\n" +
+                    $"{unit.id}.has_soul = true;\n" +
                     $"{unit.id}.canTurnIntoTumorMonster = false;\n" +
                     $"{unit.id}.canTurnIntoMush = false;\n" +
                     $"{unit.id}.dieInLava = true;\n" +
@@ -169,9 +172,9 @@ namespace WrldBxScript
             
 
         }
-        private string ToStatString(string nameP, string type)
+        private string ToStatString(string nameP, string type, object value)
         {
-            return "\t\t\n" + StringHelpers.ReplaceWhiteSpace(nameP.ToLower()) + ".base_stats[S." + type + "] += ";
+            return "\t\t\n" + StringHelpers.ReplaceWhiteSpace(nameP.ToLower()) + $".base_stats.set({StringHelpers.InQoutes(type)}, {value}f);";
         }
 
 
@@ -251,7 +254,7 @@ namespace WrldBxScript
             }
             else if (KnownKingdoms.Contains(unit.kingdom))
             {
-                return $"{unit.id}.kingdom = SK.{unit.kingdom}" + $"{unit.id}.race = SK.{unit.kingdom}";
+                return $"{unit.id}.kingdom = {StringHelpers.InQoutes(unit.kingdom)}" + $"{StringHelpers.InQoutes(unit.id)}.race = SK.{unit.kingdom}";
             }
             else
             {
@@ -265,6 +268,7 @@ namespace WrldBxScript
         {
             if (type.Equals("Icon"))
             {
+                unit.icon = unit.icon.ToString().Trim('"');
                 if (!System.IO.File.Exists(unit.icon.ToString()))
                 {
                     //give dummy path later 
@@ -272,9 +276,8 @@ namespace WrldBxScript
                     return $"{unit.id}.icon = \"ui/icons/iconBlessing\";";
                 }
 
-                //For now its a dummy location for the desktop, later we will need to get the workdir
-                string targetLocation = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                                         "FakeMod", "main", "GameResources", "ui", "icons");
+                
+                string targetLocation = System.IO.Path.Combine(WrldBxScript.compiler.OutwardModFolder, "GameResources", "ui", "icons");
 
                 System.IO.Directory.CreateDirectory(targetLocation);
 
@@ -291,7 +294,7 @@ namespace WrldBxScript
                     System.IO.File.Move(unit.icon.ToString(), targetPath);
                     return $"{unit.id}.icon = \"ui/icons/{fileNameWithoutExtension}\";";
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
 
                     //TODO: For Error like warning we need to make a debug log that the user can check
@@ -301,23 +304,23 @@ namespace WrldBxScript
             }
             if (type.Equals("Sprite"))
             {
+                unit.sprite = unit.sprite.ToString().Trim('"');
                 if (!System.IO.Directory.Exists(unit.sprite.ToString()))
                 {
                     //give dummy path later 
                     WrldBxScript.Warning("Path was not found using default", unit);
-                    return $"{unit.id}.texture_path = \"NakedMan\";"+
+                    return $"{unit.id}.texture_id = \"NakedMan\";"+
                            $"{unit.id}.animation_swim = \"swim_0,swim_1,swim_2,swim_3\";" +
                            $"{unit.id}.animation_walk = \"walk_0,walk_1,walk_2,walk_3\";";
 
                 }
                 string spriteFolderName = System.IO.Path.GetFileName(unit.sprite.ToString());
-                //For now its a dummy location for the desktop, later we will need to get the workdir
-                string targetLocation = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                                         "FakeMod", "main", "GameResources", "Actors");
+                
+                string targetLocation = System.IO.Path.Combine(WrldBxScript.compiler.OutwardModFolder, "GameResources", "Actors", spriteFolderName);
                 
                 if (System.IO.Directory.Exists(targetLocation))
                 {
-                    return $"{unit.id}.texture_path = \"{spriteFolderName}\";" +
+                    return $"{unit.id}.texture_id = \"{spriteFolderName}\";" +
                            $"{unit.id}.animation_swim = \"swim_0,swim_1,swim_2,swim_3\";" +
                            $"{unit.id}.animation_walk = \"walk_0,walk_1,walk_2,walk_3\";";
                 }
@@ -326,16 +329,16 @@ namespace WrldBxScript
                 try
                 {
                     CopyDirectory(unit.sprite.ToString(), targetLocation);
-                    return $"{unit.id}.texture_path = \"{spriteFolderName}\";" +
+                    return $"{unit.id}.texture_id = \"{spriteFolderName}\";" +
                            $"{unit.id}.animation_swim = \"swim_0,swim_1,swim_2,swim_3\";" +
                            $"{unit.id}.animation_walk = \"walk_0,walk_1,walk_2,walk_3\";";
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
 
                     //TODO: For Error like warning we need to make a debug log that the user can check
                     WrldBxScript.Warning($"There was an error moving the files, with path: {unit.icon}, using default path");
-                    return $"{unit.id}.texture_path = \"{unit.sprite}\";";
+                    return $"{unit.id}.texture_id = \"{unit.sprite}\";";
                 }
             }
             //else

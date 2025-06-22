@@ -1,5 +1,6 @@
 ﻿using Microsoft.Build.Evaluation;
 using Microsoft.Build.Framework.XamlTypes;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,13 +44,13 @@ namespace WrldBxScript
                 src.AppendLine(HandlePath(trait, "Icon"));
                 if (trait.effectName != null)
                 {
-                    src.AppendLine($"{trait.id}.action_attack_target = new AttackAction({trait.id});");
-                    src.AppendLine($"{trait.id}.action_special_effect = (WorldAction)Delegate.Combine({trait.id}.action_special_effect, new WorldAction({trait.id}Attack));");
+                    src.AppendLine($"{trait.id}.action_attack_target = new AttackAction({trait.id}Attack);");
+                    src.AppendLine($"{trait.id}.action_special_effect = (WorldAction)Delegate.Combine({trait.id}.action_special_effect, new WorldAction({trait.id}Special));");
                 }
                 //NOTE: test if this works if you never put any powers ^
-                AddReqCodeToBlock(src, trait.id, $"addTraitToLocalizedLibrary({trait.id}, {InQuotes(trait.desc)});");
+                AddReqCodeToBlock(src, trait.id, $"addTraitToLocalizedLibrary({trait.id}.id, {InQuotes(trait.desc)});");
 
-                funcs.Append(BuildTraitPowerFunctions(trait));
+                funcs.Append(BuildTraitPowerFunctions(trait, src));
 
             }
 
@@ -62,7 +63,7 @@ namespace WrldBxScript
 
 
 
-        private string BuildTraitPowerFunctions(WrldBxTrait trait)
+        private string BuildTraitPowerFunctions(WrldBxTrait trait, StringBuilder osb)
         {
 
             string powerFuncs = "";
@@ -73,7 +74,7 @@ namespace WrldBxScript
                 "\n\t{";
 
             string mainSpecialFunc =
-                $"public static bool {trait.id}Special(BaseSimObject pSelf, BaseSimObject pTarget, WorldTile pTile)" +
+                $"public static bool {trait.id}Special(BaseSimObject pSelf, WorldTile pTile)" +
                 "\n{" +
                 "\n\tif (pSelf.a != null)" +
                 "\n\t{";
@@ -99,7 +100,7 @@ namespace WrldBxScript
                     if (effect.IsAttack)
                     {
                         mainAttackFunc +=
-                            $"\n\t\tif (Toolbox.randomChance({effect.chance}))" +
+                            $"\n\t\tif (Randy.randomChance({effect.chance}))" +
                             "\n\t\t{" +
                             $"\n\t\t\t{effect.id}(pSelf, pTarget, pTile);" +
                             "\n\t\t}";
@@ -108,7 +109,7 @@ namespace WrldBxScript
                     else
                     {
                         mainSpecialFunc +=
-                            $"\n\t\tif (Toolbox.randomChance({effect.chance}))" +
+                            $"\n\t\tif (Randy.randomChance({effect.chance}))" +
                             "\n\t\t{" +
                             $"\n\t\t\t{effect.id}(pSelf, pTarget, pTile);" +
                             "\n\t\t}";
@@ -126,9 +127,12 @@ namespace WrldBxScript
                                   "\n\t}" +
                                   "\n\t\treturn false;" +
                                   "\n}";
-
+                    if (osb.ToString().Contains(powerFuncs))
+                    {
+                        osb.Replace(powerFuncs, powerFuncs); //this seems stupid but recompiling on the same build needs this so that it doesnt just add it
+                    }
                     mainAttackFunc +=
-                        $"\n\t\tif (Toolbox.randomChance({projectile.chance}))" +
+                        $"\n\t\tif (Randy.randomChance({projectile.chance}))" +
                         "\n\t\t{" +
                         $"\n\t\t\t{projectile.id}(pSelf, pTarget, pTile);" +
                         "\n\t\t}";
@@ -185,11 +189,24 @@ namespace WrldBxScript
 
         private string SpawnProjectileCode(WrldBxProjectile projectile)
         {
-            return "Vector2Int pos = pTile.pos;" +
-                   "float pDist = Vector2.Distance(pTarget.currentPosition, pos);" +
-                   "Vector3 newPoint = Toolbox.getNewPoint(pSelf.currentPosition.x, pSelf.currentPosition.y, (float)pos.x, (float)pos.y, pDist, true);" +
-                   "Vector3 newPoint2 = Toolbox.getNewPoint(pTarget.currentPosition.x, pTarget.currentPosition.y, (float)pos.x, (float)pos.y, pTarget.a.stats[S.size], true);" +
-                   $"EffectsLibrary.spawnProjectile({InQuotes(projectile.id)}, newPoint, newPoint2, 0.0f);";
+            // TODO: amount needs to be set to the projectile.amount
+            return $@"
+            Vector2 Pos = default;
+            Vector3 Start = Pos == default ? pSelf.current_position : Pos;
+            int amount = 1;
+            float tZ = 0f; 
+            float pZ = 0.25f;
+            if (pTarget.isInAir())
+            {{
+                tZ = pTarget.getHeight();
+            }}
+            for (int i = 0; i < amount; i++)
+            {{
+                Vector3 tTargetPos = pTarget.current_tile.posV3;
+                tTargetPos.x += Randy.randomFloat(-(pTarget.stats[""size""] + 1f), pTarget.stats[""size""] + 1f);
+                tTargetPos.y += Randy.randomFloat(-pTarget.stats[""size""], pTarget.stats[""size""]);
+                World.world.projectiles.spawn(pSelf, pTarget, {InQuotes(projectile.id)}, Start, tTargetPos, tZ, pZ);
+            }}";
         }
         private string SpawnEffectCode(WrldBxEffect effect)
         {
@@ -266,9 +283,9 @@ namespace WrldBxScript
             }
             return false;
         }
-        private string ToStatString(string nameP, string type)
+        private string ToStatString(string nameP, string type, object value)
         {
-            return "\t\t\n" + ReplaceWhiteSpace(nameP.ToLower()) + ".base_stats[S." + type + "] += ";
+            return "\t\t\n" + ReplaceWhiteSpace(nameP.ToLower()) + $".base_stats.set({StringHelpers.InQoutes(type)}, {value}f);";
         }
         private string ToParaCase(string str)
         {
@@ -293,7 +310,7 @@ namespace WrldBxScript
             if (value.HasValue)
             {
                 string statValue = divideBy100 ? (Convert.ToDouble(value.Value) / 100).ToString() : value.ToString();
-                sb.AppendLine($"{ToStatString(id, statName)}{statValue};");
+                sb.AppendLine($"{ToStatString(id, statName, statValue)}");
             }
         }
 
@@ -305,8 +322,8 @@ namespace WrldBxScript
 
         public void AddReqCodeToBlock(StringBuilder src, object name, string appendage = null)
         {
-            src.Append("\t\t\nAssetManger.traits.add(" + name.ToString() + ");");
-            src.Append("\t\t\nPlayerConfig.unlockTrait(" + name.ToString() + ".id);\n");
+            src.Append("\t\t\nAssetManager.traits.add(" + name.ToString() + ");");
+            src.Append($"\t\t\n{name}.unlock();\n");
             src.Append(appendage);
         }
 
@@ -341,7 +358,7 @@ namespace WrldBxScript
                     System.IO.File.Move(trait.pathIcon.ToString(), targetPath);
                     return $"{trait.id}.path_icon = \"ui/icons/{fileNameWithoutExtension}\";";
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
 
                     //TODO: For Error like warning we need to make a debug log that the user can check

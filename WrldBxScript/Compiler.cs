@@ -15,6 +15,7 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using static WrldBxScript.StringHelpers;
 using WrldBxScript.Globals;
 using WrldBxScript.Objects;
+using System.Xml.Linq;
 
 
 
@@ -109,7 +110,7 @@ namespace WrldBxScript
             {
                 modname = VerifyModnameType(stmtv);
                 CompileMainCode(); // this happens once so compile and plugin later, if we do god edits we need to handle that
-
+                ModInfo.Write($"{OutwardModFolder}/mod.json", modname);
             }
             else if (name == null && modname == null)
             {
@@ -124,6 +125,7 @@ namespace WrldBxScript
         public void HandleStarterStmt(Stmt.Starter stmtst)
         {
             if (modname == null) modname = "MyDummyMod";
+            src.AppendLine(Constants.GENERICUSINGSTMTS);
             src.AppendLine($"namespace {modname}");
             src.AppendLine("{");
             src.AppendLine($"\tclass {ToParaCase(stmtst.type.lexeme)}");
@@ -377,7 +379,7 @@ namespace WrldBxScript
 
         private void CompileMainCode()
         {
-            string modScript = @"
+            string modScript = $@"
 using System.IO;
 using System.Collections.Generic;
 using System.Reflection;
@@ -386,21 +388,19 @@ using UnityEngine;
 using Newtonsoft.Json;
 using HarmonyLib;
 using NeoModLoader.constants;
-using GodsAndPantheons.AI;
-using GodsAndPantheons.Patches;
 using ai.behaviours;
 
-namespace GodsAndPantheons
-{
+namespace {modname}
+{{
     [ModEntry]
     class Main : MonoBehaviour
-    {
+    {{
         void Awake()
-        {
+        {{
             //INIT_HERE
-        }
-    }
-}";
+        }}
+    }}
+}}";
             Directory.CreateDirectory(Path.Combine(WorldBoxModFolder, $"{modname}/Code"));
             File.WriteAllText($"{WorldBoxModFolder}/{modname}/Code/Main.cs",
                 modScript);

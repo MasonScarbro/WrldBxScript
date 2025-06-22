@@ -32,33 +32,30 @@ namespace WrldBxScript
                 {
                     WrldBxScript.Warning($"{projectile.id} Does not have an assigned texture, given default texture");
                 }
-                if (!_repositories["TERRAFORMING"].Exists(projectile.terraformOption))
+                if (projectile.terraformOption is null || !_repositories["TERRAFORMING"].Exists(projectile.terraformOption))
                 {
                     //When we introduce Globals we may need to change this
                     WrldBxScript.Warning($"{projectile.terraformOption} Does not exist within TERRAFORMING");
-                    projectile.terraformOption = string.Empty;
+                    projectile.terraformOption = "string.Empty";
                 }
-                src.Append($"\t\t\ndraw_light_area = {projectile.draw_light_area}," +
-                       $"\t\t\ndraw_light_size = {projectile.draw_light_size}," +
+                src.Append($"\t\t\ndraw_light_area = {StringHelpers.ConvertBoolString(projectile.draw_light_area)}," +
+                       $"\t\t\ndraw_light_size = {projectile.draw_light_size}f," +
                        HandlePath(projectile, "Sprite"));
-                src.Append(projectile.animation_speed.HasValue ? $"\t\t\nanimation_speed = {projectile.animation_speed}" : "");
-                src.Append($"\t\t\nspeed = {projectile.speed}," +
-                       $"\t\t\nparabolic = {StringHelpers.ConvertBoolString(projectile.parabolic)}" +
-                       $"\t\t\nlook_at_target = {projectile.lookAtTarget}" +
-                       $"\t\t\nstartScale = {projectile.scale}," +
-                       $"\t\t\ntargetScale = {projectile.scale}," +
-                       $"\t\t\nterraformOption = {projectile.terraformOption},");
-                src.Append("\t\t\nlooped = true," +
-                       "\t\t\nendEffect = string.Empty," +
+                src.Append(projectile.animation_speed.HasValue ? $"\t\t\nanimation_speed = {projectile.animation_speed}," : "");
+                src.Append($"\t\t\nspeed = {projectile.speed}f," +
+                       $"\t\t\nscale_start = {projectile.scale}f," +
+                       $"\t\t\nscale_target = {projectile.scale}f," +
+                       $"\t\t\nterraform_option = {projectile.terraformOption},");
+                src.Append("\t\t\nend_effect = string.Empty," +
                        $"\t\t\ntexture_shadow = {InQuotes("shadow_ball")}," +
-                       $"\t\t\ntrailEffect_enabled = true," +
+                       $"\t\t\ntrail_effect_enabled = true," +
                        $"sound_launch = {InQuotes("event:/SFX/WEAPONS/WeaponFireballStart")},");
 
 
                 AddReqCodeToBlock(src, projectile.id);
             }
 
-            src.AppendLine("\t}\n}");
+            src.AppendLine("\t}\n}\t\n}");
         }
 
         /// <summary>
@@ -68,8 +65,8 @@ namespace WrldBxScript
         /// <param name="name"></param>
         public void AddBlockId(StringBuilder src, object name)
         {
-            src.AppendLine($"\t\tvar {name} = AssetManager.effects_library.add(new EffectAsset {{");
-            src.AppendLine($"\t\t\tid = {InQuotes(name.ToString())}");
+            src.AppendLine($"\t\tAssetManager.projectiles.add(new ProjectileAsset {{");
+            src.AppendLine($"\t\t\tid = {InQuotes(name.ToString())},");
         }
 
         /// <summary>
@@ -81,7 +78,7 @@ namespace WrldBxScript
         public void AddReqCodeToBlock(StringBuilder src, object name, string appendage = null)
         {
             src.AppendLine("\t\t});");
-            src.AppendLine($"World.world.stackEffects.CallMethod(add, {InQuotes(name.ToString())});");
+            
         }
 
         private string HandlePath(WrldBxProjectile projectile, string type)
@@ -89,7 +86,7 @@ namespace WrldBxScript
 
             if (type.Equals("Sprite"))
             {
-                
+                projectile.texture = projectile.texture.ToString().Trim('"');
                 if (!System.IO.Directory.Exists(projectile.texture.ToString()))
                 {
                     //give dummy path later 
@@ -97,23 +94,18 @@ namespace WrldBxScript
                     return $"texture = \"NakedMan\",";
 
                 }
-                string spriteFolderName = System.IO.Path.GetFileName(projectile.texture.ToString());
+                string spriteFolderName = System.IO.Path.GetDirectoryName(projectile.texture.ToString());
                 // 5/21/2025, UPDATED TOUSE THE MOD FOLDER TESTING PENDING
                 string targetLocation = System.IO.Path.Combine(WrldBxScript.compiler.OutwardModFolder, "GameResources", "effects", "projectiles");
 
-                // if it already exists
-                if (System.IO.Directory.Exists(targetLocation))
-                {
-                    return $"texture = \"effects/{spriteFolderName}\",";
-                }
-
+                
                 //else
                 try
                 {
-                    CopyDirectory(projectile.texture.ToString(), targetLocation);
-                    return $"texture = \"{spriteFolderName}\",";
+                    CopyDirectory(projectile.texture.ToString(), targetLocation + $"/{projectile.id}");
+                    return $"texture = \"{projectile.id}\",";
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
 
                     //TODO: For Error like warning we need to make a debug log that the user can check

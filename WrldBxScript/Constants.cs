@@ -8,13 +8,12 @@ namespace WrldBxScript
 {
     class Constants
     {
-        public const string TRAITSEOF =  @"
+        public const string TRAITSEOF = @"
         public static void addTraitToLocalizedLibrary(string id, string description) 
         {
-            string language = Reflection.GetField(LocalizedTextManager.instance.GetType(), LocalizedTextManager.instance, 'language') as string;
-            Dictionary<string, string> localizedText = Reflection.GetField(LocalizedTextManager.instance.GetType(), LocalizedTextManager.instance, ''localizedText'') as Dictionary<string, string>;
-            localizedText.Add('trait_' + id, id);
-            localizedText.Add('trait_' + id + '_info', description);
+            Dictionary<string, string> localizedText = LocalizedTextManager.instance._localized_text;
+            localizedText.Add(""trait_"" + id, id);
+            localizedText.Add(""trait_"" + id + ""_info"", description);
         }
         " + "\n}" + "\n}";
 
@@ -41,6 +40,20 @@ namespace WrldBxScript
         "\t\tActionLibrary.addFrozenEffectOnTarget(null, pTarget, null);" +
         "\n}";
 
-       
+
+        public const string GENERICUSINGSTMTS = @"
+using ai;
+using HarmonyLib;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using UnityEngine;
+using NCMS.Utils;
+using NCMS;";
+
+
     }
 }

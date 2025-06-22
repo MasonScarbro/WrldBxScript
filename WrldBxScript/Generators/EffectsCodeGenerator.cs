@@ -28,7 +28,7 @@ namespace WrldBxScript
                 src.AppendLine(HandlePath(effect, "Sprite"));
                 src.AppendLine($"\t\ttime_between_frames = {effect.time_between_frames},");
                 src.AppendLine($"\t\tdraw_light_area = {effect.draw_light_area},");
-                src.AppendLine($"\t\tdraw_light_size = {effect.draw_light_size},");
+                src.AppendLine($"\t\tdraw_light_size = {effect.draw_light_size}f,");
                 src.AppendLine($"\t\tlimit = {effect.limit},");
 
                 AddReqCodeToBlock(src, effect.id);
@@ -56,6 +56,7 @@ namespace WrldBxScript
             
             if (type.Equals("Sprite"))
             {
+                effect.sprite_path = effect.sprite_path.ToString().Trim('"');
                 if (!System.IO.Directory.Exists(effect.sprite_path.ToString()))
                 {
                     //give dummy path later 

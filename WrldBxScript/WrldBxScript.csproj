@@ -235,6 +235,7 @@
     <Compile Include="Globals\IGlobal.cs" />
     <Compile Include="Globals\Invincible.cs" />
     <Compile Include="Globals\Shield.cs" />
+    <Compile Include="ModJson.cs" />
     <Compile Include="Objects\WrldBxKingdom.cs" />
     <Compile Include="Objects\WrldBxUnit.cs" />
     <Compile Include="StringHelpers.cs" />

@@ -34,12 +34,12 @@ namespace WrldBxScript
                 src.Append(
                     $"flash = {terraformOption.flash}," +
                     $"explode_tile = {terraformOption.explode_tile}," +
-                    $"applyForce = {terraformOption.applyForce}," +
+                    $"apply_force = {terraformOption.applyForce}," +
                     $"force_power = {terraformOption.force_power}," +
                     $"explode_strength = {terraformOption.explode_strength}," +
-                    $"damageBuildings = {terraformOption.damageBuildings.ToString().ToLower()}," +
+                    $"damage_buildings = {terraformOption.damageBuildings.ToString().ToLower()}," +
                     $"setFire = {terraformOption.setFire}," +
-                    $"addBurned = {terraformOption.addBurned}," +
+                    $"add_burned = {terraformOption.addBurned}," +
                     $"shake_intensity = 1f," +
                     $"damage = {terraformOption.damage},"
 
