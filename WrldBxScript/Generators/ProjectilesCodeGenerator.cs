@@ -105,7 +105,7 @@ namespace WrldBxScript
                     CopyDirectory(projectile.texture.ToString(), targetLocation + $"/{projectile.id}");
                     return $"texture = \"{projectile.id}\",";
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
 
                     //TODO: For Error like warning we need to make a debug log that the user can check

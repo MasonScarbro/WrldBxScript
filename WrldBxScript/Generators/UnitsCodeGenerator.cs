@@ -95,7 +95,7 @@ namespace WrldBxScript
         {
             src.Append($"AssetManager.actor_library.loadShadow({name});\r\n" +
                 $"AssetManager.actor_library.loadTexturesAndSprites({name});");
-            src.Append($"{(appendage == null ? "" : appendage)}");
+            src.Append($"{(appendage ?? "")}");
             src.Append($"Localization.addLocalization({name}.name_locale, {name}.name_locale);");
         }
 
@@ -120,17 +120,17 @@ namespace WrldBxScript
                     $"{HandleKingdom(unit)}"+
                     $"{HandlePath(unit, "Icon")}"+
                     $"{HandlePath(unit, "Sprite")}" +
-                    $"{ToStatString(unit.id, "health")}{unit.health};" +
-                    $"{ToStatString(unit.id, "accuracy")}{unit.accuracy};" +
-                    $"{ToStatString(unit.id, "range")}{unit.range};" +
-                    $"{ToStatString(unit.id, "attack_speed")}{unit.attackSpeed};" +
-                    $"{ToStatString(unit.id, "crit_chance")}{unit.critChance};" +
-                    $"{ToStatString(unit.id, "damage")}{unit.damage};" +
-                    $"{ToStatString(unit.id, "dodge")}{unit.dodge};" +
-                    $"{ToStatString(unit.id, "scale")}{unit.scale};" +
-                    $"{ToStatString(unit.id, "stewardship")}{unit.stewardship};" +
-                    $"{ToStatString(unit.id, "warfare")}{unit.warfare};" +
-                    $"{ToStatString(unit.id, "intelligence")}{unit.intelligence};" 
+                    $"{ToStatString(unit.id, "health", unit.health)}" +
+                    $"{ToStatString(unit.id, "accuracy", unit.accuracy)}" +
+                    $"{ToStatString(unit.id, "range", unit.range)}" +
+                    $"{ToStatString(unit.id, "attack_speed", unit.attackSpeed)};" +
+                    $"{ToStatString(unit.id, "crit_chance", unit.critChance)};" +
+                    $"{ToStatString(unit.id, "damage", unit.damage)};" +
+                    $"{ToStatString(unit.id, "dodge", unit.dodge)};" +
+                    $"{ToStatString(unit.id, "scale", unit.scale)};" +
+                    $"{ToStatString(unit.id, "stewardship", unit.stewardship)};" +
+                    $"{ToStatString(unit.id, "warfare", unit.warfare)};" +
+                    $"{ToStatString(unit.id, "intelligence", unit.intelligence)};" 
                     
                     );
                 //Constant
@@ -172,9 +172,9 @@ namespace WrldBxScript
             
 
         }
-        private string ToStatString(string nameP, string type)
+        private string ToStatString(string nameP, string type, object value)
         {
-            return "\t\t\n" + StringHelpers.ReplaceWhiteSpace(nameP.ToLower()) + ".base_stats[S." + type + "] += ";
+            return "\t\t\n" + StringHelpers.ReplaceWhiteSpace(nameP.ToLower()) + $".base_stats.set({StringHelpers.InQoutes(type)}, {value}f);";
         }
 
 
@@ -254,7 +254,7 @@ namespace WrldBxScript
             }
             else if (KnownKingdoms.Contains(unit.kingdom))
             {
-                return $"{unit.id}.kingdom = SK.{unit.kingdom}" + $"{unit.id}.race = SK.{unit.kingdom}";
+                return $"{unit.id}.kingdom = {StringHelpers.InQoutes(unit.kingdom)}" + $"{StringHelpers.InQoutes(unit.id)}.race = SK.{unit.kingdom}";
             }
             else
             {
@@ -294,7 +294,7 @@ namespace WrldBxScript
                     System.IO.File.Move(unit.icon.ToString(), targetPath);
                     return $"{unit.id}.icon = \"ui/icons/{fileNameWithoutExtension}\";";
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
 
                     //TODO: For Error like warning we need to make a debug log that the user can check
@@ -333,7 +333,7 @@ namespace WrldBxScript
                            $"{unit.id}.animation_swim = \"swim_0,swim_1,swim_2,swim_3\";" +
                            $"{unit.id}.animation_walk = \"walk_0,walk_1,walk_2,walk_3\";";
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
 
                     //TODO: For Error like warning we need to make a debug log that the user can check

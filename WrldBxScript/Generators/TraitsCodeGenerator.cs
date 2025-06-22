@@ -1,5 +1,6 @@
 ﻿using Microsoft.Build.Evaluation;
 using Microsoft.Build.Framework.XamlTypes;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -282,9 +283,9 @@ namespace WrldBxScript
             }
             return false;
         }
-        private string ToStatString(string nameP, string type)
+        private string ToStatString(string nameP, string type, object value)
         {
-            return "\t\t\n" + ReplaceWhiteSpace(nameP) + ".base_stats[S." + type + "] += ";
+            return "\t\t\n" + ReplaceWhiteSpace(nameP.ToLower()) + $".base_stats.set({StringHelpers.InQoutes(type)}, {value}f);";
         }
         private string ToParaCase(string str)
         {
@@ -309,7 +310,7 @@ namespace WrldBxScript
             if (value.HasValue)
             {
                 string statValue = divideBy100 ? (Convert.ToDouble(value.Value) / 100).ToString() : value.ToString();
-                sb.AppendLine($"{ToStatString(id, statName)}{statValue};");
+                sb.AppendLine($"{ToStatString(id, statName, statValue)}");
             }
         }
 
@@ -322,7 +323,7 @@ namespace WrldBxScript
         public void AddReqCodeToBlock(StringBuilder src, object name, string appendage = null)
         {
             src.Append("\t\t\nAssetManager.traits.add(" + name.ToString() + ");");
-            src.Append($"\t\t\n{name.ToString()}.unlock();\n");
+            src.Append($"\t\t\n{name}.unlock();\n");
             src.Append(appendage);
         }
 
@@ -357,7 +358,7 @@ namespace WrldBxScript
                     System.IO.File.Move(trait.pathIcon.ToString(), targetPath);
                     return $"{trait.id}.path_icon = \"ui/icons/{fileNameWithoutExtension}\";";
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
 
                     //TODO: For Error like warning we need to make a debug log that the user can check

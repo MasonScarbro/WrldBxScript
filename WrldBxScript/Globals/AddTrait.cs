@@ -10,7 +10,7 @@ namespace WrldBxScript.Globals
     {
         private Dictionary<string, WrldBxObjectRepository<IWrldBxObject>> _repositories;
 
-        private List<string> uniqueAttributes = new List<string>
+        private readonly List<string> uniqueAttributes = new List<string>
         {
             "evil",
             "poison_immune",
@@ -72,10 +72,10 @@ namespace WrldBxScript.Globals
                             {
 
 
-                                return $"AssetManager.actor_library.CallMethod(\"addTrait\", \"{arguments[0].ToString()}\");";
+                                return $"AssetManager.actor_library.CallMethod(\"addTrait\", \"{arguments[0]}\");";
                             }
                             var target = arguments.Count > 1 && arguments[1]?.ToString() == "self" ? "pSelf" : "pTarget";
-                            return $"{target}.addTrait({arguments[0].ToString()})";
+                            return $"{target}.addTrait({arguments[0]})";
                             
                         }
                         
@@ -90,7 +90,7 @@ namespace WrldBxScript.Globals
                 
             }
             //else blank
-            WrldBxScript.Warning($"We could not find the trait {arguments[0].ToString()} in your traits or an existing game trait");
+            WrldBxScript.Warning($"We could not find the trait {arguments[0]} in your traits or an existing game trait");
             return "";
         }
 
